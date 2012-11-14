@@ -113,7 +113,7 @@
 						  <id>foo</id>
 						  <mainClass>MyExperiment</mainClass>
 						  <args>
-							<arg>arg1</arg>
+							<arg>hw.ihex</arg>
 						  </args>
 						  <jvmArgs>
 							<jvmArg>-Xmx128m</jvmArg>

@@ -38,7 +38,7 @@ object MyExperiment {
 	val moteType = List("telosb")
 
 	val moteList = Buffer("")
-	val moteFindex = Buffer(0, 0)
+	val moteFindex = Buffer(0,0,0)
 
 	implicit def greg2XMLGreg(greg: GregorianCalendar) = {
 		DatatypeFactory.newInstance().newXMLGregorianCalendar(greg);
@@ -59,7 +59,7 @@ object MyExperiment {
 	implicit def SecretReservationKeyRs2SM(rs: eu.wisebed.api.rs.SecretReservationKey): eu.wisebed.api.sm.SecretReservationKey = {
 		val rv = new eu.wisebed.api.sm.SecretReservationKey;
 		rv.setSecretReservationKey(rs.getSecretReservationKey)
-		rv.setUrnPrefix(rs.getSecretReservationKey)
+		rv.setUrnPrefix(rs.getUrnPrefix)
 		rv
 	}
 
@@ -155,6 +155,12 @@ object MyExperiment {
 				def receiveStatus(requestStatuses: java.util.List[eu.wisebed.api.controller.RequestStatus]): Unit = {
 					for(rs <- requestStatuses){
 						log.info("RS:" + rs.getRequestId())
+						for(stat <- rs.getStatus){
+							log.info("  Node:   " + stat.getNodeId )
+							log.info("  Status: " + stat.getMsg + "(" + stat.getValue() + ")" )
+							
+							
+						}
 					}
 				}
 				def receiveNotification(msgs: java.util.List[String]): Unit = {
@@ -175,7 +181,7 @@ object MyExperiment {
 
 			
 			
-			log.debug("Using the following parameters for calling getInstance(): {}, {}",
+			log.debug("Using the following parameters for calling getInstance(): \"{}\", \"{}\"",
 				StringUtils.jaxbMarshal(seqAsJavaList(secretReservationKeys)),
 				localControllerEndpointURL);
 			var wsnEndpointURL: String = null;
@@ -195,14 +201,14 @@ object MyExperiment {
 				}
 					
 			}
-			log.debug("Got a WSN instance URL, endpoint is: {}", wsnEndpointURL);
+			log.debug("Got a WSN instance URL, endpoint is: \"{}\"", wsnEndpointURL);
 			val wsnService = WisebedServiceHelper.getWSNService(wsnEndpointURL);
 
 			
 			val prog = RichProgram(args(0));
 			
 			val rid = wsnService.flashPrograms(nodeUrns, moteFindex.map(new java.lang.Integer(_)), List(prog))
-			
+			log.error("END")
 		}
 
 	}
