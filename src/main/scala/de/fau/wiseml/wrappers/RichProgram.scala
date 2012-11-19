@@ -12,7 +12,9 @@ class RichProgram extends Program {
 }
 
 object RichProgram{
-  	def apply( pathName:String,  name:String = "", other:String ="",   platform:String ="",  version:String="1.0"):RichProgram = {
+	
+	
+  	def apply( pathName:String,  name:String = "", other:String ="",   platform:String ="",  version:String="1.0"):Program = {
 
 		val programMetaData = new ProgramMetaData
 		programMetaData.setName(name)
@@ -20,7 +22,7 @@ object RichProgram{
 		programMetaData.setPlatform(platform)
 		programMetaData.setVersion(version);
 
-		val rv = new RichProgram
+		val rv = new Program
 		val programFile = new File(pathName);
 
 		val fis = new FileInputStream(programFile);

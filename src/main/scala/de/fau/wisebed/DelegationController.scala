@@ -1,3 +1,5 @@
+package de.fau.wisebed
+
 
 import eu.wisebed.api.controller.Controller
 import org.apache.log4j.Logger
@@ -18,25 +20,22 @@ import eu.wisebed.api.controller.ObjectFactory
 		portName = "ControllerPort",
 		endpointInterface = "eu.wisebed.api.controller.Controller"
 )
-class MyController(controller:Controller) extends Controller {
+class DelegationController(controller:Controller, endpointUrl:String) extends Controller {
 
   	val log = Logger.getLogger(this.getClass)
 
-	
 
-    @throws(classOf[MalformedURLException])
-	def publish(endpointUrl:String):Unit   = {
-		val bindAllInterfacesUrl = UrlUtils.convertHostToZeros(endpointUrl);
+	val bindAllInterfacesUrl = UrlUtils.convertHostToZeros(endpointUrl);
 
-		log.debug("Starting DelegatingController...");
-		log.debug("Endpoint URL: " + endpointUrl);
-		log.debug("Binding  URL: " + bindAllInterfacesUrl);
+	log.debug("Starting DelegatingController...");
+	log.debug("Endpoint URL: " + endpointUrl);
+	log.debug("Binding  URL: " + bindAllInterfacesUrl);
 
-		val endpoint = Endpoint.publish(bindAllInterfacesUrl, this);
-		endpoint.setExecutor(Executors.newCachedThreadPool());
+	val endpoint = Endpoint.publish(bindAllInterfacesUrl, this);
+	endpoint.setExecutor(Executors.newCachedThreadPool());
 
-		log.debug("Successfully started DelegatingController at " + bindAllInterfacesUrl);
-	}
+	log.debug("Successfully started DelegatingController at " + bindAllInterfacesUrl);
+
 
 	@Override
 	def receive(@WebParam(name = "msg", targetNamespace = "")  msg:java.util.List[Message] ) {

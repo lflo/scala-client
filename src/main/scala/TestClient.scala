@@ -1,33 +1,34 @@
 
 
-import org.slf4j.LoggerFactory
-import eu.wisebed.api.WisebedServiceHelper
-import eu.wisebed.wiseml.WiseMLHelper
-import de.uniluebeck.itm.tr.util.Logging
-import org.apache.log4j.Level
-import org.apache.log4j.Logger
-import org.apache.log4j.PatternLayout
-import scala.List
-import de.fau.wiseml.wrappers.RichWiseMLHelper._
-import de.fau.wiseml.wrappers.RichWiseMLHelper
-import eu.wisebed.api.snaa.AuthenticationTriple
-import scala.collection.JavaConversions._
-import eu.wisebed.api.rs.ConfidentialReservationData
-import javax.xml.datatype.DatatypeFactory
-import java.util.GregorianCalendar
+import java.net.InetAddress
+import java.net.MalformedURLException
 import java.util.Calendar
-import org.joda.time.DateTime
-import eu.wisebed.api.rs.ReservervationConflictExceptionException
+import java.util.GregorianCalendar
+
+import scala.collection.JavaConversions.asScalaBuffer
+import scala.collection.JavaConversions.bufferAsJavaList
+import scala.collection.JavaConversions.seqAsJavaList
 import scala.collection.mutable.Buffer
+
+import org.apache.log4j.Level
+import org.apache.log4j.PatternLayout
+import org.slf4j.LoggerFactory
+
+import de.fau.wiseml.wrappers.RichProgram
+import de.fau.wiseml.wrappers.RichWiseMLHelper
+import de.fau.wisebed.DelegationController
+import de.uniluebeck.itm.tr.util.Logging
+import de.uniluebeck.itm.tr.util.StringUtils
+import eu.wisebed.api.WisebedServiceHelper
+import eu.wisebed.api.common
+import eu.wisebed.api.controller.Controller
+import eu.wisebed.api.rs.ConfidentialReservationData
 import eu.wisebed.api.rs.GetReservations
 import eu.wisebed.api.rs.SecretReservationKey
-import eu.wisebed.api._
-import eu.wisebed.api.controller.Controller
-import java.net.InetAddress
-import de.uniluebeck.itm.tr.util.StringUtils
 import eu.wisebed.api.sm.UnknownReservationIdException_Exception
-import eu.wisebed.api.wsn.Program
-import de.fau.wiseml.wrappers.RichProgram
+import eu.wisebed.api.snaa.AuthenticationTriple
+import javax.jws.WebService
+import javax.xml.datatype.DatatypeFactory
 
 object MyExperiment {
 	//Config
@@ -132,9 +133,10 @@ object MyExperiment {
 
 			} else {
 				/*
-	    	for(res <- ress){
-	    	  reservationSystem.deleteReservation(secretAuthKeys,res.getData)
-	    	}*/
+		    	for(res <- ress){
+		    	  val srk = ress.foldLeft(Buffer[SecretReservationKey]())(_ ++ _.getData)
+		    	  reservationSystem.deleteReservation(secretAuthKeys,srk)
+		    	}*/
 
 				secretReservationKeys = reservationSystem.makeReservation(
 					secretAuthKeys,
@@ -175,8 +177,8 @@ object MyExperiment {
 			}
 			// try to connect via unofficial protocol buffers API if hostname and port are set in the configuration
 
-			val delegator = new MyController(controller);
-			delegator.publish(localControllerEndpointURL);
+			val delegator = new DelegationController(controller, localControllerEndpointURL);
+			
 			log.debug("Local controller published on url: {}", localControllerEndpointURL);
 
 			
