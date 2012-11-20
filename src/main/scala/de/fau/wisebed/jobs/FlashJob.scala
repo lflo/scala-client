@@ -21,6 +21,8 @@ class FlashJob(nodes:Traversable[String]) extends Job {
 				log.warn("Failed to Flash mote: ", node)
 			} else if(v == -2){
 				log.warn("Mote " + node + " not found")
+			} else {
+				log.info("Flashing mote " + node + " " + v + "%" )
 			}
 			
 		}
@@ -31,6 +33,7 @@ class FlashJob(nodes:Traversable[String]) extends Job {
 		if(stat.forall(v => {v._2 == 100 || v._2 == -1 || v._2 == -2})){
 			_success = stat.forall(v => {v._2 == 100 })
 			done()
+			log.info("Finished flashing motes: " + {if(_success) "OK" else "Failed"})
 		} 
 	}
 	

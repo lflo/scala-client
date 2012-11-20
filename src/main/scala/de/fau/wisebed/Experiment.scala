@@ -12,11 +12,12 @@ import de.fau.wiseml.wrappers.RichProgram
 import scala.collection._
 import jobs._
 
-class Experiment (_res:List[Reservation], tb:Testbed){
+
+class Experiment (_res:List[Reservation], implicit val tb:Testbed){
 	
 	val log = LoggerFactory.getLogger(this.getClass);
 	
-	val localControllerEndpointURL = "http://" + InetAddress.getLocalHost().getCanonicalHostName() + ":8089/controller/" + Experiment.id
+	val localControllerEndpointURL = "http://" + InetAddress.getLocalHost().getCanonicalHostName() + ":" + Experiment.port.toString+ "/controller/" + Experiment.id
 	
 	val res = _res.map(_.copy)
 	
@@ -32,8 +33,7 @@ class Experiment (_res:List[Reservation], tb:Testbed){
 		}
 		def receiveStatus(requestStatuses: java.util.List[eu.wisebed.api.controller.RequestStatus]): Unit = {
 			for(rs <- requestStatuses){
-				val id = rs.getRequestId
-				log.info("RS:" + id)
+				val id = rs.getRequestId				
 				jobs.get(id) match {
 					case Some(j) => {
 						j.statusUpdate(rs.getStatus)
@@ -73,7 +73,8 @@ class Experiment (_res:List[Reservation], tb:Testbed){
 				localControllerEndpointURL);
 		log.debug("Got a WSN instance URL, endpoint is: \"{}\"", wsnEndpointURL);
 		WisebedServiceHelper.getWSNService(wsnEndpointURL);
-	}	
+	}
+	log.debug("Local Endpoint initiated")
 
 	//----------------------- End constructor ---------------------------------------------
 	
@@ -92,6 +93,15 @@ class Experiment (_res:List[Reservation], tb:Testbed){
 
 object Experiment{
 	private var intid = 1;
-	private def id = (intid +=1)   
+	private def id:String = {(intid +=1); intid.toString}
+	
+	import java.net.ServerSocket
+	private lazy val port:Int = {
+		val socket= new ServerSocket(0)
+		val port = socket.getLocalPort()
+		socket.close();
+		port
+	}
+	
 	
 }

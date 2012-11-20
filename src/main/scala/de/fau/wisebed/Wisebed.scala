@@ -116,6 +116,7 @@ class Testbed(
 		for(res <- ress){			
 			val tmp = new de.fau.wisebed.Reservation(res.getFrom.toGregorianCalendar, res.getTo.toGregorianCalendar, res.getNodeURNs.toList, res.getUserData())
 			tmp.addKeys(asScalaBuffer(res.getData))
+			rv += tmp
 		}	
 		rv
 	}
@@ -137,12 +138,13 @@ class Testbed(
 	}
 	
 	
-	def makeReservation(res:Reservation){
-		res addKeys reservationSystem.makeReservation(seqAsJavaList(secretAuthenticationKeys), res.asConfidentialReservationData);
+	def makeReservation(res:Reservation):Reservation = {
+		res addKeys reservationSystem.makeReservation(seqAsJavaList(secretAuthenticationKeys), res.asConfidentialReservationData)
+		res
 	}
 	
 	
-	def makeReservation(from:GregorianCalendar, to: GregorianCalendar, nodeUrns:List[String], user:String = defaultUser){
+	def makeReservation(from:GregorianCalendar, to: GregorianCalendar, nodeUrns:List[String], user:String = defaultUser):Reservation = {
 		val res = new Reservation(from, to, nodeUrns, user)
 		makeReservation(res)
 	}

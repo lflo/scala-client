@@ -7,18 +7,24 @@ import javax.xml.datatype.DatatypeFactory
 import scala.collection.JavaConversions._
 import CalConv.greg2XMLGreg
 import javax.xml.datatype.XMLGregorianCalendar
+import java.text.SimpleDateFormat
+import org.slf4j.LoggerFactory
 
 class Reservation(_from:GregorianCalendar, _to:GregorianCalendar,_nodeURNs:List[String], user:String) {
-
-    val from:GregorianCalendar = _from.clone.asInstanceOf[GregorianCalendar]
-    val to = _to.clone.asInstanceOf[GregorianCalendar]
+	val log = LoggerFactory.getLogger(this.getClass);
+    val lfrom:GregorianCalendar = _from.clone.asInstanceOf[GregorianCalendar]
+    val lto = _to.clone.asInstanceOf[GregorianCalendar]
+    
+    def from:GregorianCalendar = lfrom.clone.asInstanceOf[GregorianCalendar]
+    def to:GregorianCalendar = lto.clone.asInstanceOf[GregorianCalendar]
+    
     val nodeURNs = _nodeURNs.toList
 	
     
 	var userData:String = ""
     val secretReservationKeys = Buffer[rs.SecretReservationKey]()
     
-   
+    def inThePast = to.before(new GregorianCalendar)
     
     
     def addKeys(keys:Iterable[rs.SecretReservationKey]):Unit = {
@@ -27,8 +33,8 @@ class Reservation(_from:GregorianCalendar, _to:GregorianCalendar,_nodeURNs:List[
 	
  	def asConfidentialReservationData:rs.ConfidentialReservationData = { 
     	val rv = new rs.ConfidentialReservationData
-    	rv.setFrom(greg2XMLGreg(from))
-    	rv.setTo(to)
+    	rv.setFrom(lfrom)
+    	rv.setTo(lto)
     	rv.setUserData(user)
     	rv.getNodeURNs().addAll(nodeURNs);
     	rv
@@ -36,7 +42,22 @@ class Reservation(_from:GregorianCalendar, _to:GregorianCalendar,_nodeURNs:List[
     
  	
  	def copy():Reservation = {
- 		new Reservation(from, to, nodeURNs, user)
+ 		val rv = new Reservation(from, to, nodeURNs, user)
+ 		rv.addKeys(secretReservationKeys)
+ 		rv
+ 	}
+ 	
+ 	def dateString(format:String = "HH:mm:ss", split:String = " - "):String = {
+ 			 
+		val rv = new StringBuilder
+		
+		val f = new SimpleDateFormat(format)
+		rv ++= f.format(from.getTime) 
+		rv ++= split
+		rv ++= f.format(to.getTime)
+		
+		rv.toString()
+			
  	}
     
 }

@@ -19,7 +19,7 @@ abstract class Job extends Future[Boolean]{
 
 	def apply:Boolean  = synchronized {
 		while (!st_done) wait()
-		true
+		_success
 	}
 	
 	protected def done() = synchronized {
