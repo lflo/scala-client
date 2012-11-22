@@ -34,7 +34,13 @@ import de.fau.wisebed.jobs.MoteAliveState._
 
 object MyExperiment {
 	val ffile = "sky-shell.ihex"
+	val smEndpointURL:String = "http://i4dr.informatik.uni-erlangen.de:10011/sessions"
+	val snaaEndpointURL:String = "http://i4dr.informatik.uni-erlangen.de:20011/snaa"
+	val rsEndpointURL:String = "http://i4dr.informatik.uni-erlangen.de:30011/rs"
+	
 
+	val flash= false
+		
 	def main(args: Array[String]) {
 		Logging.setLoggingDefaults(Level.ALL) // new PatternLayout("%-11d{HH:mm:ss,SSS} %-5p - %m%n"))
 
@@ -43,7 +49,7 @@ object MyExperiment {
 		//Get Motes
 
 		log.debug("Starting Testbed")
-		val tb = new Testbed()
+		val tb = new Testbed(smEndpointURL, snaaEndpointURL, rsEndpointURL)
 		log.debug("Requesting Motes")
 		val motes = tb.getnodes()
 		log.debug("Motes: " + motes.mkString(", "))
@@ -92,7 +98,7 @@ object MyExperiment {
 		
 		val activemotes = status.filter(_._2 == Alive).map(_._1).toList
 		
-		if(false){
+		if(flash){
 			log.debug("Flashing")
 			val flashj = exp.flash(ffile, activemotes)
 			flashj()

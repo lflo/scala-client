@@ -22,10 +22,7 @@ import de.fau.wisebed.jobs.NodesAliveJob
 
 
 
-class Testbed(
-	val smEndpointURL:String = "http://i4dr.informatik.uni-erlangen.de:10011/sessions",
-	val snaaEndpointURL:String = "http://i4dr.informatik.uni-erlangen.de:20011/snaa",
-	val rsEndpointURL:String = "http://i4dr.informatik.uni-erlangen.de:30011/rs") {
+class Testbed(val smEndpointURL:String, val snaaEndpointURL:String, val rsEndpointURL:String) {
 	
 	val log = LoggerFactory.getLogger(this.getClass);
 	val credentialsList = Buffer[snaa.AuthenticationTriple]()
