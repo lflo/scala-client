@@ -33,7 +33,7 @@ import de.fau.wisebed.jobs.MoteAliveState._
 
 
 object MyExperiment {
-
+	val ffile = "sky-shell.ihex"
 
 	def main(args: Array[String]) {
 		Logging.setLoggingDefaults(Level.ALL) // new PatternLayout("%-11d{HH:mm:ss,SSS} %-5p - %m%n"))
@@ -94,18 +94,31 @@ object MyExperiment {
 		
 		if(false){
 			log.debug("Flashing")
-			val flashj = exp.flash("hw.ihex", activemotes)
+			val flashj = exp.flash(ffile, activemotes)
 			flashj()
 		}
 		
 		log.debug("Resetting")
-		exp.resetNodes(activemotes)
+		val resj = exp.resetNodes(activemotes)
+		resj()
+		
+		log.debug("Waiting for bootup")
+		Thread.sleep(10 * 1000)
+		
+		log.debug("Sending \\n")
+		val snd = exp.send(activemotes, "help\n")
+		snd()
+		log.debug("Waiting for answer")
+		Thread.sleep(20 * 1000)
+		
+		log.debug("Removing Reservation")
+		res.foreach(tb.freeReservation(_))
+		
 		
 		log.debug("DONE")
 		//sys.exit(0)
 		
-		
-		
+
 	}
 
 }

@@ -12,6 +12,7 @@ import de.fau.wiseml.wrappers.RichProgram
 import scala.collection._
 import jobs._
 import java.util.GregorianCalendar
+import java.util.Date
 
 
 
@@ -44,7 +45,8 @@ class Experiment (_res:List[Reservation], implicit val tb:Testbed){
 				val mm = new MoteMessage(msg)
 				messagebuf += mm 
 				val str = mm.data.map(_.toChar).foldLeft(new StringBuilder)(_ + _)
-				log.debug("Got message from " + mm.node + ": \"" +  str  + "\"")
+				val time = (new GregorianCalendar).getTimeInMillis - msg.getTimestamp.toGregorianCalendar.getTimeInMillis
+				log.debug("Got message from " + mm.node + " (" +time+ " ms): \"" +  str  + "\"")
 				
 				
 			}
@@ -102,6 +104,20 @@ class Experiment (_res:List[Reservation], implicit val tb:Testbed){
 		controller.addJob(rid -> job)
 		job
 	}
+	
+	def send(nodes:List[String], data:String):SendJob = {
+		import CalConv._
+		if(active == false) return null
+		val job = new SendJob(nodes)
+		val msg = new common.Message
+		msg.setBinaryData(data.toArray.map(_.toByte))
+		msg.setSourceNodeId("urn:fauAPI:none:0xFFFF")
+		msg.setTimestamp(new GregorianCalendar)
+		val rid = wsnService.send(nodes, msg)
+		controller.addJob(rid -> job)
+		job
+	}
+	
 	
 }
 

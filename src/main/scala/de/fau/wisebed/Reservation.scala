@@ -89,6 +89,4 @@ object CalConv{
 	implicit def greg2XMLGreg(greg: GregorianCalendar):XMLGregorianCalendar = {
 		DatatypeFactory.newInstance().newXMLGregorianCalendar(greg);
 	}
-	
-
 }
