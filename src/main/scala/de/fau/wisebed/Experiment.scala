@@ -76,21 +76,29 @@ class Experiment (_res:List[Reservation], implicit val tb:Testbed){
 	
 	//----------------------- End constructor ---------------------------------------------
 	
-	def flash(file:String, nodes:Traversable[String]):FlashJob = {
+	def flash(file:String, nodes:List[String]):FlashJob = {
 		if(active == false) return null
 		val prog = RichProgram(file);
 		val map = List.fill(nodes.size){new java.lang.Integer(0)}
-		val rid:String = wsnService.flashPrograms(nodes.toList, map, List(prog))
+		val rid:String = wsnService.flashPrograms(nodes, map, List(prog))
 		val job = new FlashJob(nodes)
 		controller.addJob(rid -> job)		
 		job
 		
 	}
 	
-	def areNodesAlive(nodes:Traversable[String]):NodesAliveJob = {
+	def areNodesAlive(nodes:List[String]):NodesAliveJob = {
 		if(active == false) return null
-		val job = new NodesAliveJob(nodes.toList)
-		val rid = wsnService.areNodesAlive(nodes.toList);
+		val job = new NodesAliveJob(nodes)
+		val rid = wsnService.areNodesAlive(nodes);
+		controller.addJob(rid -> job)
+		job
+	}
+	
+	def resetNodes(nodes:List[String]):ResetJob = {
+		if(active == false) return null
+		val job = new ResetJob(nodes)
+		val rid = wsnService.resetNodes(nodes);
 		controller.addJob(rid -> job)
 		job
 	}

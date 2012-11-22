@@ -90,11 +90,17 @@ object MyExperiment {
 		status.foreach(m => log.info(m._1 + ": " +  m._2.toString))
 		
 		
-		val activemotes = status.filter(_._2 == Alive).map(_._1)
+		val activemotes = status.filter(_._2 == Alive).map(_._1).toList
 		
-		log.debug("Flashing")
-		//val flashj = exp.flash("hw.ihex", activemotes)
-		//flashj()
+		if(false){
+			log.debug("Flashing")
+			val flashj = exp.flash("hw.ihex", activemotes)
+			flashj()
+		}
+		
+		log.debug("Resetting")
+		exp.resetNodes(activemotes)
+		
 		log.debug("DONE")
 		//sys.exit(0)
 		

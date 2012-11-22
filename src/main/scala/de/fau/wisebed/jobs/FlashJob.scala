@@ -16,7 +16,9 @@ class FlashJob(nodes:Traversable[String]) extends Job {
 		for(s <- stats){
 			val v = s.getValue()
 			val node = s.getNodeId 
-			stat(node) = v;
+			
+			synchronized{stat(node) = v}
+			
 			if(v == -1){
 				log.warn("Failed to Flash mote: ", node)
 			} else if(v == -2){
@@ -30,7 +32,7 @@ class FlashJob(nodes:Traversable[String]) extends Job {
 	}
 	
 	def checkdone = {
-		if(stat.forall(v => {v._2 == 100 || v._2 == -1 || v._2 == -2})){
+		if(synchronized{stat.forall(v => {v._2 == 100 || v._2 == -1 || v._2 == -2})}){
 			_success = stat.forall(v => {v._2 == 100 })
 			done()
 			log.info("Finished flashing motes: " + {if(_success) "OK" else "Failed"})
