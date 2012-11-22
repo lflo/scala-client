@@ -13,6 +13,7 @@ import eu.wisebed.api.controller.RequestStatus
 import javax.jws.WebService
 import javax.xml.bind.annotation.XmlSeeAlso
 import eu.wisebed.api.controller.ObjectFactory
+import java.net.InetAddress
 
 @WebService(
 		serviceName = "ControllerService",
@@ -20,15 +21,15 @@ import eu.wisebed.api.controller.ObjectFactory
 		portName = "ControllerPort",
 		endpointInterface = "eu.wisebed.api.controller.Controller"
 )
-class DelegationController(controller:Controller, endpointUrl:String) extends Controller {
+class DelegationController(controller:Controller) extends Controller {
 
   	val log = Logger.getLogger(this.getClass)
 
-
-	val bindAllInterfacesUrl = UrlUtils.convertHostToZeros(endpointUrl);
+  	val url = "http://" + InetAddress.getLocalHost().getCanonicalHostName() + ":" + DelegationController.port.toString+ "/controller/" + DelegationController.id
+	val bindAllInterfacesUrl = UrlUtils.convertHostToZeros(url);
 
 	log.debug("Starting DelegatingController...");
-	log.debug("Endpoint URL: " + endpointUrl);
+	log.debug("Endpoint URL: " + url);
 	log.debug("Binding  URL: " + bindAllInterfacesUrl);
 
 	val endpoint = Endpoint.publish(bindAllInterfacesUrl, this);
@@ -36,6 +37,9 @@ class DelegationController(controller:Controller, endpointUrl:String) extends Co
 
 	log.debug("Successfully started DelegatingController at " + bindAllInterfacesUrl);
 
+	
+	def endpointUrl = url
+	
 
 	@Override
 	def receive(@WebParam(name = "msg", targetNamespace = "")  msg:java.util.List[Message] ) {
@@ -56,7 +60,22 @@ class DelegationController(controller:Controller, endpointUrl:String) extends Co
 	def experimentEnded() {
 		controller.experimentEnded();
 	}
+
   
-  
-  
+}
+
+
+object DelegationController{
+	private var intid = 0;
+	private def id:String = {(intid +=1); intid.toString}
+	
+	import java.net.ServerSocket
+	private lazy val port:Int = {
+		val socket= new ServerSocket(0)
+		val port = socket.getLocalPort()
+		socket.close();
+		port
+	}
+	
+	
 }

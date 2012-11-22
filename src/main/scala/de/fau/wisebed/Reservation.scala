@@ -59,6 +59,11 @@ class Reservation(_from:GregorianCalendar, _to:GregorianCalendar,_nodeURNs:List[
 		rv.toString()
 			
  	}
+ 	
+ 	def sm_reservationkeys:List[sm.SecretReservationKey] = {
+ 		import Reservation._
+ 		secretReservationKey_Rs2SM(secretReservationKeys).toList
+ 	}
     
 }
 

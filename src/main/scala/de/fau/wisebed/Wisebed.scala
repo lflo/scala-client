@@ -15,13 +15,17 @@ import scala.collection.mutable.HashSet
 import CalConv.greg2XMLGreg
 import eu.wisebed.api.snaa.AuthenticationTriple
 import eu.wisebed.api.controller.Controller
+import de.fau.wisebed.jobs.JobController
+import de.fau.wisebed.jobs.NodesAliveJob
+import de.fau.wisebed.jobs.NodesAliveJob
+
+
 
 
 class Testbed(
 	val smEndpointURL:String = "http://i4dr.informatik.uni-erlangen.de:10011/sessions",
 	val snaaEndpointURL:String = "http://i4dr.informatik.uni-erlangen.de:20011/snaa",
-	val rsEndpointURL:String = "http://i4dr.informatik.uni-erlangen.de:30011/rs",
-	var localControllerEndpointURL:String = "") {
+	val rsEndpointURL:String = "http://i4dr.informatik.uni-erlangen.de:30011/rs") {
 	
 	val log = LoggerFactory.getLogger(this.getClass);
 	val credentialsList = Buffer[snaa.AuthenticationTriple]()
@@ -49,7 +53,8 @@ class Testbed(
 	lazy val wiseML = sessionManagement.getNetwork();
 	var currentWSNService:wsn.WSN = null
 	
-	
+	lazy val jobControl =  new JobController
+	lazy val controller = new  DelegationController(jobControl)
 
 	
 	
@@ -149,6 +154,16 @@ class Testbed(
 		makeReservation(res)
 	}
 	
+	def freeReservation(res:Reservation){
+		import Reservation._
+		sessionManagement.free(seqAsJavaList(res.sm_reservationkeys))
+	}
 	
-
+	def areNodesAlive(nodes:List[String]):NodesAliveJob = {
+		val job = new NodesAliveJob(nodes)		
+		val url = controller.endpointUrl
+		sessionManagement.areNodesAlive(nodes, url)
+		job		
+	}
+	
 }

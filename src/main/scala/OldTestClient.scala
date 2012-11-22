@@ -35,7 +35,7 @@ object MyOldExperiment {
 	val smEndpointURL = "http://i4dr.informatik.uni-erlangen.de:10011/sessions"
 	val snaaEndpointURL = "http://i4dr.informatik.uni-erlangen.de:20011/snaa"
 	val rsEndpointURL = "http://i4dr.informatik.uni-erlangen.de:30011/rs"
-	val localControllerEndpointURL = "http://" + InetAddress.getLocalHost().getCanonicalHostName() + ":8089/controller";
+	var localControllerEndpointURL = "http://" + InetAddress.getLocalHost().getCanonicalHostName() + ":8089/controller";
 	val moteType = List("telosb")
 
 	val moteList = Buffer("")
@@ -177,7 +177,9 @@ object MyOldExperiment {
 			}
 			// try to connect via unofficial protocol buffers API if hostname and port are set in the configuration
 
-			val delegator = new DelegationController(controller, localControllerEndpointURL);
+			val delegator = new DelegationController(controller);
+			
+			localControllerEndpointURL = delegator.endpointUrl
 			
 			log.debug("Local controller published on url: {}", localControllerEndpointURL);
 

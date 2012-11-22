@@ -29,12 +29,14 @@ import javax.xml.datatype.DatatypeFactory
 import de.fau.wisebed.Testbed
 import java.text.SimpleDateFormat
 import de.fau.wisebed.Experiment
+import de.fau.wisebed.jobs.MoteAliveState._
+
 
 object MyExperiment {
 
 
 	def main(args: Array[String]) {
-		Logging.setLoggingDefaults(Level.ALL, new PatternLayout("%-11d{HH:mm:ss,SSS} %-5p - %m%n"))
+		Logging.setLoggingDefaults(Level.ALL) // new PatternLayout("%-11d{HH:mm:ss,SSS} %-5p - %m%n"))
 
 		val log = LoggerFactory.getLogger("MyExperiment");
 
@@ -45,6 +47,17 @@ object MyExperiment {
 		log.debug("Requesting Motes")
 		val motes = tb.getnodes()
 		log.debug("Motes: " + motes.mkString(", "))
+		
+		
+		
+		/* FIXME: This does not work!
+		 * log.debug("Requesting Motesate")
+		val statusj = tb.areNodesAlive(motes)
+		val status = statusj.status
+		status.foreach(m => log.info(m._1 + ": " +  m._2.toString))
+		* 
+		*/
+		
 	
 		log.debug("Logging in")
 		tb.addCrencials("urn:fau:", "morty", "WSN")
@@ -70,7 +83,21 @@ object MyExperiment {
 		}
 		
 		val exp = new Experiment(res.toList, tb)
-		exp.flash("hw.ihex", motes)
+		
+		log.debug("Requesting Motestate")
+		val statusj = exp.areNodesAlive(motes)
+		val status = statusj.status
+		status.foreach(m => log.info(m._1 + ": " +  m._2.toString))
+		
+		
+		val activemotes = status.filter(_._2 == Alive).map(_._1)
+		
+		log.debug("Flashing")
+		//val flashj = exp.flash("hw.ihex", activemotes)
+		//flashj()
+		log.debug("DONE")
+		//sys.exit(0)
+		
 		
 		
 	}
