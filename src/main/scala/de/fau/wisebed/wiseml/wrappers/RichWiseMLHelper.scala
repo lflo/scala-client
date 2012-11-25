@@ -1,14 +1,10 @@
-package de.fau.wiseml.wrappers
+package de.fau.wisebed.wiseml.wrappers
 
 import eu.wisebed.wiseml.WiseMLHelper
 import scala.collection.mutable.Buffer
 import scala.collection.JavaConversions._
 
-
-
-
-object RichWiseMLHelper{
-	
+object RichWiseMLHelper {
 	implicit def WisemlHelper2RichWiseMLHelper(wh:WiseMLHelper) = RichWiseMLHelper
 	
    	def getNodeUrns(serializedWiseML:String, types:Iterable[String] = null):List[String] ={

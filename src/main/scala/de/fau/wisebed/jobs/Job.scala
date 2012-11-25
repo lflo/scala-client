@@ -4,9 +4,7 @@ import scala.parallel.Future
 import eu.wisebed.api.controller.Status
 
 
-
-
-abstract class Job extends Future[Boolean]{
+abstract class Job extends Future[Boolean] {
 	var id:String = ""
 	var st_done = false
 	
@@ -26,6 +24,4 @@ abstract class Job extends Future[Boolean]{
 		st_done  = true
 		notify()
 	}
-	
-		
 }

@@ -1,4 +1,4 @@
-package de.fau.wiseml.wrappers
+package de.fau.wisebed.wiseml.wrappers
 
 import eu.wisebed.api.wsn.Program
 import eu.wisebed.api.wsn.ProgramMetaData

@@ -1,5 +1,3 @@
-
-
 import java.net.InetAddress
 import java.net.MalformedURLException
 import java.util.Calendar
@@ -31,30 +29,25 @@ import java.text.SimpleDateFormat
 import de.fau.wisebed.Experiment
 import de.fau.wisebed.jobs.MoteAliveState._
 
-
 object MyExperiment {
+	val log = LoggerFactory.getLogger("MyExperiment");
+	
 	val ffile = "sky-shell.ihex"
 	val smEndpointURL:String = "http://i4dr.informatik.uni-erlangen.de:10011/sessions"
 	val snaaEndpointURL:String = "http://i4dr.informatik.uni-erlangen.de:20011/snaa"
 	val rsEndpointURL:String = "http://i4dr.informatik.uni-erlangen.de:30011/rs"
 	
-
-	val flash= false
+	val flash = false
 		
 	def main(args: Array[String]) {
 		Logging.setLoggingDefaults(Level.ALL) // new PatternLayout("%-11d{HH:mm:ss,SSS} %-5p - %m%n"))
 
-		val log = LoggerFactory.getLogger("MyExperiment");
-
 		//Get Motes
-
 		log.debug("Starting Testbed")
 		val tb = new Testbed(smEndpointURL, snaaEndpointURL, rsEndpointURL)
 		log.debug("Requesting Motes")
 		val motes = tb.getnodes()
 		log.debug("Motes: " + motes.mkString(", "))
-		
-		
 		
 		/* FIXME: This does not work!
 		 * log.debug("Requesting Motesate")
@@ -64,7 +57,6 @@ object MyExperiment {
 		* 
 		*/
 		
-	
 		log.debug("Logging in")
 		tb.addCrencials("urn:fau:", "morty", "WSN")
 		
@@ -72,20 +64,18 @@ object MyExperiment {
 		log.debug("Requesting reservations")
 		val res = tb.getReservations(240)
 		
-		if(res.size != 0){
-			for(r <- res){
-				log.debug("Got Reservations: \n" +  r.dateString() + " for " + r.getNodeURNs().mkString(", ")) 
-			}
+		for(r <- res) {
+			log.debug("Got Reservations: \n" +  r.dateString() + " for " + r.getNodeURNs.mkString(", ")) 
 		}
 		
-		if(res.size == 0 || res.forall(_.inThePast)){
+		if(!res.exists(_.now)) {
 			log.debug("No Reservations or in the Past- Requesting")
 			val from = new GregorianCalendar
 			val to = new GregorianCalendar
 			to.add(Calendar.MINUTE, 120)
 			val r = tb.makeReservation(from, to, motes, "morty")
-			log.debug("Got Reservations: \n" +  r.dateString() + " for " + r.getNodeURNs().mkString(", ")) 
-			res += r;
+			log.debug("Got Reservations: \n" +  r.dateString() + " for " + r.getNodeURNs.mkString(", ")) 
+			res += r
 		}
 		
 		val exp = new Experiment(res.toList, tb)
@@ -93,10 +83,9 @@ object MyExperiment {
 		log.debug("Requesting Motestate")
 		val statusj = exp.areNodesAlive(motes)
 		val status = statusj.status
-		status.foreach(m => log.info(m._1 + ": " +  m._2.toString))
+		for((m, s) <- status) log.info(m +": " + s)
 		
-		
-		val activemotes = status.filter(_._2 == Alive).map(_._1).toList
+		val activemotes = (for((m, s) <- status; if(s == Alive)) yield m).toList
 		
 		if(flash){
 			log.debug("Flashing")
@@ -123,8 +112,5 @@ object MyExperiment {
 		
 		log.debug("DONE")
 		//sys.exit(0)
-		
-
 	}
-
 }

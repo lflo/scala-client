@@ -1,10 +1,9 @@
 package de.fau.wisebed
 
-
 import org.slf4j.LoggerFactory
 import eu.wisebed.wiseml.WiseMLHelper
 import eu.wisebed.api._
-import de.fau.wiseml.wrappers.RichWiseMLHelper
+import de.fau.wisebed.wiseml.wrappers.RichWiseMLHelper
 import java.util.GregorianCalendar
 import java.util.Calendar
 import java.net.InetAddress
@@ -15,16 +14,12 @@ import scala.collection.mutable.HashSet
 import CalConv.greg2XMLGreg
 import eu.wisebed.api.snaa.AuthenticationTriple
 import eu.wisebed.api.controller.Controller
-import de.fau.wisebed.jobs.JobController
 import de.fau.wisebed.jobs.NodesAliveJob
-import de.fau.wisebed.jobs.NodesAliveJob
-
-
 
 
 class Testbed(val smEndpointURL:String, val snaaEndpointURL:String, val rsEndpointURL:String) {
-	
 	val log = LoggerFactory.getLogger(this.getClass);
+
 	val credentialsList = Buffer[snaa.AuthenticationTriple]()
 	
 	var defaultUser = ""
@@ -50,10 +45,8 @@ class Testbed(val smEndpointURL:String, val snaaEndpointURL:String, val rsEndpoi
 	lazy val wiseML = sessionManagement.getNetwork();
 	var currentWSNService:wsn.WSN = null
 	
-	lazy val jobControl =  new JobController
-	lazy val controller = new  DelegationController(jobControl)
+	lazy val controller = new ExperimentController
 
-	
 	
 	
 	//Implicits
@@ -158,7 +151,7 @@ class Testbed(val smEndpointURL:String, val snaaEndpointURL:String, val rsEndpoi
 	
 	def areNodesAlive(nodes:List[String]):NodesAliveJob = {
 		val job = new NodesAliveJob(nodes)		
-		val url = controller.endpointUrl
+		val url = controller.url
 		sessionManagement.areNodesAlive(nodes, url)
 		job		
 	}

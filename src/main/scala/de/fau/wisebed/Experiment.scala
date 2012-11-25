@@ -2,6 +2,8 @@ package de.fau.wisebed
 
 import eu.wisebed.api.controller.Controller
 import eu.wisebed.api._
+import eu.wisebed.api.common._
+import eu.wisebed.api.controller._
 import scala.collection.JavaConversions._
 import org.slf4j.LoggerFactory
 import java.net.InetAddress
@@ -15,66 +17,50 @@ import java.util.GregorianCalendar
 import java.util.Date
 
 
-
-class MoteMessage(val node:String, val data:Array[Byte], val time:GregorianCalendar){
+class MoteMessage(val node:String, val data:Array[Byte], val time:GregorianCalendar) {
 	def this (m:common.Message){
 		this(m.getSourceNodeId, m.getBinaryData, m.getTimestamp.toGregorianCalendar)
 	}
+
+	def dataString = data.map(_.toChar).mkString
 }
 
 
-class Experiment (_res:List[Reservation], implicit val tb:Testbed){
+class Experiment (res:List[Reservation], implicit val tb:Testbed) {
+	val log = LoggerFactory.getLogger(this.getClass)
 	
-	val log = LoggerFactory.getLogger(this.getClass);
-	
-	val messagebuf = mutable.Buffer[MoteMessage]()
-	
-	val res = _res.map(_.copy)
-	
-	var active = true;
-	
-	val controller = new JobController {
-		override def experimentEnded(): Unit = {
-			active = false
-			stopdel
-			log.info("Experiment ended")
-		}
-		
-		override def receive(msgs: java.util.List[common.Message]): Unit = {
-			for(msg <- msgs){
-				val mm = new MoteMessage(msg)
-				messagebuf += mm 
-				val str = mm.data.map(_.toChar).foldLeft(new StringBuilder)(_ + _)
-				val time = (new GregorianCalendar).getTimeInMillis - msg.getTimestamp.toGregorianCalendar.getTimeInMillis
-				log.debug("Got message from " + mm.node + " (" +time+ " ms): \"" +  str  + "\"")
-				
-				
-			}
-		}
+	var messages = List[MoteMessage]()
+
+	var active = true
+
+	val controller = new ExperimentController
+
+	controller.onMessage { msg: Message =>
+		val mm = new MoteMessage(msg)
+		messages ::= mm
+		// val time = (new GregorianCalendar).getTimeInMillis - msg.getTimestamp.toGregorianCalendar.getTimeInMillis
+		log.debug("Got message from " + mm.node + ": " + mm.dataString)
 	}
 
-	
-	val delegator = new DelegationController(controller);
-		
-	private def stopdel {
-		//delegator.endpoint.stop
+	controller.onEnd {
+		active = false
+		stopdel()
+		log.info("Experiment ended")
+	}
+
+	private def stopdel() {
+		// controller.endpoint.stop()
 	} 
 	
-	
-	log.debug("Local controller published on url: {}", delegator.endpointUrl);
+	log.debug("Local controller published on url: {}", controller.url)
 	
 	val wsnService:wsn.WSN = {	
-		val keys = res.foldLeft(Buffer[rs.SecretReservationKey]())(_ ++= _.secretReservationKeys)
+		val keys: Seq[eu.wisebed.api.sm.SecretReservationKey] = res.map(_.secretReservationKeys).flatten
 		
-		
-		val wsnEndpointURL:String = tb.sessionManagement.getInstance(
-				seqAsJavaList(keys),
-				delegator.endpointUrl);
-		log.debug("Got a WSN instance URL, endpoint is: \"{}\"", wsnEndpointURL);
-		WisebedServiceHelper.getWSNService(wsnEndpointURL);
+		val wsnEndpointURL = tb.sessionManagement.getInstance(keys, controller.url)
+		log.debug("Got a WSN instance URL, endpoint is: \"{}\"", wsnEndpointURL)
+		WisebedServiceHelper.getWSNService(wsnEndpointURL)
 	}
-	
-	
 	
 	//----------------------- End constructor ---------------------------------------------
 	
@@ -84,7 +70,9 @@ class Experiment (_res:List[Reservation], implicit val tb:Testbed){
 		val map = List.fill(nodes.size){new java.lang.Integer(0)}
 		val rid:String = wsnService.flashPrograms(nodes, map, List(prog))
 		val job = new FlashJob(nodes)
-		controller.addJob(rid -> job)		
+		controller.onStatus(rid) { s: Status =>
+			job.statusUpdate(List(s))
+		}
 		job
 		
 	}
@@ -92,8 +80,10 @@ class Experiment (_res:List[Reservation], implicit val tb:Testbed){
 	def areNodesAlive(nodes:List[String]):NodesAliveJob = {
 		if(active == false) return null
 		val job = new NodesAliveJob(nodes)
-		val rid = wsnService.areNodesAlive(nodes);
-		controller.addJob(rid -> job)
+		val rid = wsnService.areNodesAlive(nodes)
+		controller.onStatus(rid) { s: Status =>
+			job.statusUpdate(List(s))
+		}
 		job
 	}
 	
@@ -101,7 +91,9 @@ class Experiment (_res:List[Reservation], implicit val tb:Testbed){
 		if(active == false) return null
 		val job = new ResetJob(nodes)
 		val rid = wsnService.resetNodes(nodes);
-		controller.addJob(rid -> job)
+		controller.onStatus(rid) { s: Status =>
+			job.statusUpdate(List(s))
+		}
 		job
 	}
 	
@@ -114,10 +106,9 @@ class Experiment (_res:List[Reservation], implicit val tb:Testbed){
 		msg.setSourceNodeId("urn:fauAPI:none:0xFFFF")
 		msg.setTimestamp(new GregorianCalendar)
 		val rid = wsnService.send(nodes, msg)
-		controller.addJob(rid -> job)
+		controller.onStatus(rid) { s: Status =>
+			job.statusUpdate(List(s))
+		}
 		job
 	}
-	
-	
 }
-
