@@ -87,6 +87,13 @@ object MyExperiment {
 		
 		val activemotes = (for((m, s) <- status; if(s == Alive)) yield m).toList
 		
+		log.debug("Requesting Supported Channel Handlers")
+		val handls = exp.supportedChannelHandlers
+		for(h <- handls){
+			println(h.format)
+		}
+		
+		
 		if(flash){
 			log.debug("Flashing")
 			val flashj = exp.flash(ffile, activemotes)

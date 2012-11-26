@@ -16,6 +16,7 @@ import java.util.GregorianCalendar
 import java.util.Date
 
 
+
 class MoteMessage(val node:String, val data:Array[Byte], val time:GregorianCalendar) {
 	def this (m:common.Message){
 		this(m.getSourceNodeId, m.getBinaryData, m.getTimestamp.toGregorianCalendar)
@@ -24,8 +25,13 @@ class MoteMessage(val node:String, val data:Array[Byte], val time:GregorianCalen
 	def dataString = data.map(_.toChar).mkString
 }
 
-
+/**
+ * @todo There is a concurrency issue if a message is received before the id is added to the jobmap (this is unlikely, though)
+ */
+	
 class Experiment (res:List[Reservation], implicit val tb:Testbed) {
+
+	
 	val log = LoggerFactory.getLogger(this.getClass)
 	
 	var messages = List[MoteMessage]()
@@ -110,4 +116,17 @@ class Experiment (res:List[Reservation], implicit val tb:Testbed) {
 		}
 		job
 	}
+	
+	def supportedChannelHandlers:List[RichChannelHandlerDescription] = {
+		import wrappers.RichChannelHandlerDescription._
+		wsnService.getSupportedChannelHandlers.map(chd2rchd(_)).toList
+	}
+	
+	def _channelHandler(nodes:List[String], cnf:wsn.ChannelHandlerConfiguration){
+		val cn = List.fill(nodes.size){cnf}
+		val rid = wsnService.setChannelPipeline(nodes, cn)
+		//Fixme Implement Job 
+		
+	}
+	
 }
