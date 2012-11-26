@@ -33,9 +33,9 @@ object MyExperiment {
 	val log = LoggerFactory.getLogger("MyExperiment");
 	
 	val ffile = "sky-shell.ihex"
-	val smEndpointURL:String = "http://i4dr.informatik.uni-erlangen.de:10011/sessions"
-	val snaaEndpointURL:String = "http://i4dr.informatik.uni-erlangen.de:20011/snaa"
-	val rsEndpointURL:String = "http://i4dr.informatik.uni-erlangen.de:30011/rs"
+	val smEndpointURL = "http://i4dr.informatik.uni-erlangen.de:10011/sessions"
+	val snaaEndpointURL = "http://i4dr.informatik.uni-erlangen.de:20011/snaa"
+	val rsEndpointURL = "http://i4dr.informatik.uni-erlangen.de:30011/rs"
 	
 	val flash = false
 		
@@ -58,11 +58,11 @@ object MyExperiment {
 		*/
 		
 		log.debug("Logging in")
-		tb.addCrencials("urn:fau:", "morty", "WSN")
+		tb.addCredencials("urn:fau:", "morty", "WSN")
 		
 		
 		log.debug("Requesting reservations")
-		val res = tb.getReservations(240)
+		var res = tb.getReservations(240)
 		
 		for(r <- res) {
 			log.debug("Got Reservations: \n" +  r.dateString() + " for " + r.getNodeURNs.mkString(", ")) 
@@ -75,7 +75,7 @@ object MyExperiment {
 			to.add(Calendar.MINUTE, 120)
 			val r = tb.makeReservation(from, to, motes, "morty")
 			log.debug("Got Reservations: \n" +  r.dateString() + " for " + r.getNodeURNs.mkString(", ")) 
-			res += r
+			res ::= r
 		}
 		
 		val exp = new Experiment(res.toList, tb)

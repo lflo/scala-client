@@ -1,5 +1,7 @@
 package de.fau.wisebed
 
+import jobs._
+import wrappers._
 import eu.wisebed.api.controller.Controller
 import eu.wisebed.api._
 import eu.wisebed.api.common._
@@ -9,10 +11,7 @@ import org.slf4j.LoggerFactory
 import java.net.InetAddress
 import scala.collection.mutable.Buffer
 import Reservation.secretReservationKey_Rs2SM
-import de.fau.wisebed.jobs.Job
-import de.fau.wiseml.wrappers.RichProgram
 import scala.collection._
-import jobs._
 import java.util.GregorianCalendar
 import java.util.Date
 
