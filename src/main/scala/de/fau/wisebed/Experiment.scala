@@ -92,20 +92,20 @@ class Experiment (res:List[Reservation], implicit val tb:Testbed) {
 		job
 	}
 	
-	def resetNodes(nodes:List[String]):ResetJob = {
+	def resetNodes(nodes:List[String]):NodeOkFailJob = {
 		if(active == false) return null
-		val job = new ResetJob(nodes)
-		val rid = wsnService.resetNodes(nodes);
+		val job = new NodeOkFailJob("reset", nodes)
+		val rid = wsnService.resetNodes(nodes)
 		controller.onStatus(rid) { s: Status =>
 			job.statusUpdate(List(s))
 		}
 		job
 	}
 	
-	def send(nodes:List[String], data:String):SendJob = {
+	def send(nodes:List[String], data:String):NodeOkFailJob = {
 		import CalConv._
 		if(active == false) return null
-		val job = new SendJob(nodes)
+		val job = new NodeOkFailJob("send" , nodes)
 		val msg = new common.Message
 		msg.setBinaryData(data.toArray.map(_.toByte))
 		msg.setSourceNodeId("urn:fauAPI:none:0xFFFF")
@@ -122,10 +122,14 @@ class Experiment (res:List[Reservation], implicit val tb:Testbed) {
 		wsnService.getSupportedChannelHandlers.map(chd2rchd(_)).toList
 	}
 	
-	def _channelHandler(nodes:List[String], cnf:wsn.ChannelHandlerConfiguration){
+	def setChannelHandler(nodes:List[String], cnf:wsn.ChannelHandlerConfiguration){
 		val cn = List.fill(nodes.size){cnf}
+		val job =  new NodeOkFailJob("setChannelHandler", nodes)
 		val rid = wsnService.setChannelPipeline(nodes, cn)
-		//Fixme Implement Job 
+		controller.onStatus(rid) { s: Status =>
+			job.statusUpdate(List(s))
+		}
+		job
 		
 	}
 	

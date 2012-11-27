@@ -6,16 +6,30 @@ import scala.collection._
 import org.slf4j.LoggerFactory
 
 
+object OKFailState extends Enumeration {
+     type OKFailState = Value
+     val OK, Failure, Unknown, NotSet  = Value
+     
+     
+     def idToEnum(id:Int):OKFailState = {
+    	 id match {
+    		 case 1 => OK
+    		 case 0 => Failure
+    		 case -1 => Unknown
+    	 }
+     }
+     
+}
 
 
 
 
 
-class SendJob(nodes:List[String]) extends Job {
+class NodeOkFailJob(name:String, nodes:List[String]) extends Job {
 	import SendState._
 	
 	
-	val log = LoggerFactory.getLogger(this.getClass)
+	val log = LoggerFactory.getLogger(this.getClass + "." + name)
 	
 	val stat = new mutable.ListMap[String, SendState]
 	stat ++= nodes.map(_ -> NotSet)
