@@ -8,22 +8,6 @@ import org.slf4j.LoggerFactory
 
 
 
-object SendState extends Enumeration {
-     type SendState = Value
-     val OK, Failure, Unknown, NotSet  = Value
-     
-     
-     def idToEnum(id:Int):SendState = {
-    	 id match {
-    		 case 1 => OK
-    		 case 0 => Failure
-    		 case -1 => Unknown
-    	 }
-     }
-     
-}
-
-
 
 
 
