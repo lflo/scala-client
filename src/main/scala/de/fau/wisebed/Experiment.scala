@@ -117,9 +117,9 @@ class Experiment (res:List[Reservation], implicit val tb:Testbed) {
 		job
 	}
 	
-	def supportedChannelHandlers:List[RichChannelHandlerDescription] = {
-		import wrappers.RichChannelHandlerDescription._
-		wsnService.getSupportedChannelHandlers.map(chd2rchd(_)).toList
+	def supportedChannelHandlers:List[WrappedChannelHandlerDescription] = {
+		import wrappers.WrappedChannelHandlerDescription._
+		wsnService.getSupportedChannelHandlers.map(chd2wchd(_)).toList
 	}
 	
 	def setChannelHandler(nodes:List[String], cnf:wsn.ChannelHandlerConfiguration){

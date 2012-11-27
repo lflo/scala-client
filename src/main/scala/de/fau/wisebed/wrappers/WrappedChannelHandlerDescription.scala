@@ -5,8 +5,8 @@ import scala.collection.JavaConversions._
 import org.slf4j.LoggerFactory
 
 
-class RichChannelHandlerDescription(chd:ChannelHandlerDescription) {
-	val log = LoggerFactory.getLogger(this.getClass)
+class WrappedChannelHandlerDescription(chd:ChannelHandlerDescription) {
+	val log = LoggerFactory.getLogger(WrappedChannelHandlerDescription.this.getClass)
 	def name:String = chd.getName
 	def description:String = chd.getDescription
 	def configuration:Map[String,String] = {
@@ -28,7 +28,7 @@ class RichChannelHandlerDescription(chd:ChannelHandlerDescription) {
 }
 
 
-object RichChannelHandlerDescription {
-	implicit def chd2rchd(chd:ChannelHandlerDescription):RichChannelHandlerDescription = new RichChannelHandlerDescription(chd)
-	implicit def rchd2chd(rchd:RichChannelHandlerDescription):ChannelHandlerDescription = rchd.channelHandlerDescription
+object WrappedChannelHandlerDescription {
+	implicit def chd2wchd(chd:ChannelHandlerDescription):WrappedChannelHandlerDescription = new WrappedChannelHandlerDescription(chd)
+	implicit def wchd2chd(rchd:WrappedChannelHandlerDescription):ChannelHandlerDescription = rchd.channelHandlerDescription
 }
