@@ -65,7 +65,7 @@ class NodesAliveJob(nodes:List[String]) extends Job {
 				sb
 			}
 						
-			_success = stat.forall(v => { v._2 == Alive || v._2 == Dead })
+			_success = stat.forall(_._2 == Alive )
 			
 			
 			val sb = MoteAliveState.values.foldLeft(new StringBuilder)(getNodeState(_ , _))
