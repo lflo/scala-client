@@ -122,7 +122,7 @@ class Experiment (res:List[Reservation], implicit val tb:Testbed) {
 		wsnService.getSupportedChannelHandlers.map(chd2wchd(_)).toList
 	}
 	
-	def setChannelHandler(nodes:List[String], cnf:wsn.ChannelHandlerConfiguration){
+	def setChannelHandler(nodes:List[String], cnf:wsn.ChannelHandlerConfiguration):NodeOkFailJob = {
 		val cn = List.fill(nodes.size){cnf}
 		val job =  new NodeOkFailJob("setChannelHandler", nodes)
 		val rid = wsnService.setChannelPipeline(nodes, cn)

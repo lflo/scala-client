@@ -28,6 +28,7 @@ import de.fau.wisebed.Testbed
 import java.text.SimpleDateFormat
 import de.fau.wisebed.Experiment
 import de.fau.wisebed.jobs.MoteAliveState._
+import de.fau.wisebed.wrappers.WrappedChannelHandlerConfiguration
 
 object MyExperiment {
 	val log = LoggerFactory.getLogger("MyExperiment");
@@ -91,6 +92,18 @@ object MyExperiment {
 		val handls = exp.supportedChannelHandlers
 		for(h <- handls){
 			println(h.format)
+		}
+		
+		val setHand = "contiki"
+		
+		if(handls.find(_.name == setHand) == None){
+			log.error("Can not set handler: {}", setHand)
+		} else {
+			log.debug("Setting Handler: {}", setHand)
+			val chd = exp.setChannelHandler(activemotes, new WrappedChannelHandlerConfiguration("contiki") )
+			if(!chd()){
+				log.error("Failed setting Handler")
+			}
 		}
 		
 		

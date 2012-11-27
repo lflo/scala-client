@@ -12,6 +12,7 @@ import java.net.InetAddress
 import javax.xml.datatype.DatatypeFactory
 import scala.collection.JavaConversions._
 import CalConv.greg2XMLGreg
+import WisebedApiConversions._
 
 class Testbed(val smEndpointURL:String, val snaaEndpointURL:String, val rsEndpointURL:String) {
 	val log = LoggerFactory.getLogger(this.getClass)
@@ -29,26 +30,7 @@ class Testbed(val smEndpointURL:String, val snaaEndpointURL:String, val rsEndpoi
 	
 	lazy val controller = new ExperimentController
 
-	// Implicits
-	implicit def secretAuthentificationKey_snaa2rs(snaaKey:snaa.SecretAuthenticationKey):rs.SecretAuthenticationKey = {
-		val key = new rs.SecretAuthenticationKey
-		key.setSecretAuthenticationKey(snaaKey.getSecretAuthenticationKey)
-		key.setUrnPrefix(snaaKey.getUrnPrefix)
-		key.setUsername(snaaKey.getUsername)
-		key
-	}
-	implicit def secretAuthentificationKeys_snaa2rs(snaaKeys:Iterable[snaa.SecretAuthenticationKey]):java.util.List[rs.SecretAuthenticationKey] = {
-		snaaKeys.map(secretAuthentificationKey_snaa2rs).toSeq
-	}
 
-	implicit def data2Key(dat: Iterable[rs.Data]): Iterable[rs.SecretReservationKey] = {
-		dat.map(x => {
-			val rv = new rs.SecretReservationKey
-			rv.setSecretReservationKey(x.getSecretReservationKey)
-			rv.setUrnPrefix(x.getUrnPrefix)
-			rv
-		})
-	}
 	
 	// Public funcions
 	def getnodes(moteType:List[String] = List("telosb")):List[String] = {

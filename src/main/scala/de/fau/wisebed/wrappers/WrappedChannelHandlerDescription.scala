@@ -3,16 +3,14 @@ package de.fau.wisebed.wrappers
 import eu.wisebed.api.wsn.ChannelHandlerDescription
 import scala.collection.JavaConversions._
 import org.slf4j.LoggerFactory
-
+import de.fau.wisebed.WisebedApiConversions._
 
 class WrappedChannelHandlerDescription(chd:ChannelHandlerDescription) {
 	val log = LoggerFactory.getLogger(WrappedChannelHandlerDescription.this.getClass)
 	def name:String = chd.getName
 	def description:String = chd.getDescription
-	def configuration:Map[String,String] = {
-		val cnf = chd.getConfigurationOptions
-		cnf.map(kvp => (kvp.getKey -> kvp.getValue)).toMap
-	} 
+	def configuration:Map[String,String] = chd.getConfigurationOptions.toList
+	
 	def format:String = {
 		val rv = new StringBuilder() 
 		rv ++= name + ": " + description + "\n"
