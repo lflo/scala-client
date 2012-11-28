@@ -1,34 +1,18 @@
-import java.net.InetAddress
-import java.net.MalformedURLException
+package de.fau.wisebed
+
 import java.util.Calendar
 import java.util.GregorianCalendar
+
 import scala.collection.JavaConversions.asScalaBuffer
-import scala.collection.JavaConversions.bufferAsJavaList
-import scala.collection.JavaConversions.seqAsJavaList
-import scala.collection.mutable.Buffer
+
 import org.apache.log4j.Level
-import org.apache.log4j.PatternLayout
 import org.slf4j.LoggerFactory
-import de.fau.wiseml.wrappers.RichProgram
-import de.fau.wiseml.wrappers.RichWiseMLHelper
-import de.fau.wisebed.DelegationController
-import de.uniluebeck.itm.tr.util.Logging
-import de.uniluebeck.itm.tr.util.StringUtils
-import eu.wisebed.api.WisebedServiceHelper
-import eu.wisebed.api.common
-import eu.wisebed.api.controller.Controller
-import eu.wisebed.api.rs.ConfidentialReservationData
-import eu.wisebed.api.rs.GetReservations
-import eu.wisebed.api.rs.SecretReservationKey
-import eu.wisebed.api.sm.UnknownReservationIdException_Exception
-import eu.wisebed.api.snaa.AuthenticationTriple
-import javax.jws.WebService
-import javax.xml.datatype.DatatypeFactory
-import de.fau.wisebed.Testbed
-import java.text.SimpleDateFormat
-import de.fau.wisebed.Experiment
+
+import de.fau.wisebed.Reservation.reservation2CRD
 import de.fau.wisebed.jobs.MoteAliveState._
 import de.fau.wisebed.wrappers.WrappedChannelHandlerConfiguration
+import de.fau.wisebed.wrappers.WrappedChannelHandlerConfiguration._
+import de.uniluebeck.itm.tr.util.Logging
 
 object MyExperiment {
 	val log = LoggerFactory.getLogger("MyExperiment");

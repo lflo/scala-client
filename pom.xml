@@ -26,8 +26,8 @@
 
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>eu.wisebed</groupId>
-	<artifactId>scala-client</artifactId>
+	<groupId>de.fau.wisebed</groupId>
+	<artifactId>scala-API</artifactId>
 	<packaging>jar</packaging>
 	<version>1.0-SNAPSHOT</version>
 	<name>WISEBED Scala Client</name>
