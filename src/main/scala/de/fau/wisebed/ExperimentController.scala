@@ -1,21 +1,22 @@
 package de.fau.wisebed
 
-
-import eu.wisebed.api.controller.Controller
-import org.apache.log4j.Logger
-import java.net.MalformedURLException
-import de.uniluebeck.itm.tr.util.UrlUtils
-import javax.xml.ws.Endpoint
-import java.util.concurrent.Executors
-import javax.jws.WebParam
-import eu.wisebed.api.common.Message
-import eu.wisebed.api.controller._
-import javax.jws.WebService
-import javax.xml.bind.annotation.XmlSeeAlso
-import eu.wisebed.api.controller.ObjectFactory
+import java.lang.Override
 import java.net.InetAddress
 import java.net.ServerSocket
-import scala.collection.JavaConversions._
+import java.util.concurrent.Executors
+
+import scala.collection.JavaConversions.asScalaBuffer
+
+import org.slf4j.LoggerFactory
+
+import de.uniluebeck.itm.tr.util.UrlUtils
+import eu.wisebed.api.common.Message
+import eu.wisebed.api.controller.Controller
+import eu.wisebed.api.controller.RequestStatus
+import eu.wisebed.api.controller.Status
+import javax.jws.WebParam
+import javax.jws.WebService
+import javax.xml.ws.Endpoint
 
 @WebService(
 		serviceName = "ControllerService",
@@ -24,14 +25,14 @@ import scala.collection.JavaConversions._
 		endpointInterface = "eu.wisebed.api.controller.Controller"
 )
 class ExperimentController extends Controller {
-  	val log = Logger.getLogger(this.getClass)
+  	val log = LoggerFactory.getLogger(this.getClass)
 
   	val url = "http://" + InetAddress.getLocalHost.getCanonicalHostName + ":" + ExperimentController.port + "/controller/" + ExperimentController.id
 	val bindAllInterfacesUrl = UrlUtils.convertHostToZeros(url)
 
 	log.debug("Starting ExperimentController...")
-	log.debug("Endpoint URL: " + url)
-	log.debug("Binding  URL: " + bindAllInterfacesUrl)
+	log.debug("Endpoint URL: {}", url)
+	log.debug("Binding  URL: {}", bindAllInterfacesUrl)
 
 	val endpoint = Endpoint.publish(bindAllInterfacesUrl, this)
 	endpoint.setExecutor(Executors.newCachedThreadPool())
@@ -50,7 +51,9 @@ class ExperimentController extends Controller {
 	}
 
 	def onMessage(callback: Message => Unit) {
-		messageCallbacks ::= callback
+		messageCallbacks.synchronized{
+			messageCallbacks ::= callback
+		}
 	}
 
 	@Override
@@ -60,11 +63,15 @@ class ExperimentController extends Controller {
 	}
 
 	def onStatus(callback: RequestStatus => Unit) {
-		statusCallbacks ::= callback
+		statusCallbacks.synchronized{
+			statusCallbacks ::= callback
+		}
 	}
 
 	def onStatus(requestID: String)(callback: Status => Unit) {
-		requestStatusCallbacks += requestID -> callback
+		requestStatusCallbacks.synchronized{
+			requestStatusCallbacks += requestID -> callback
+		}
 	}
 
 	@Override
@@ -73,7 +80,9 @@ class ExperimentController extends Controller {
 	}
 
 	def onNotification(callback: String => Unit) {
-		notificationCallbacks ::= callback
+		notificationCallbacks.synchronized{
+			notificationCallbacks ::= callback
+		}
 	}
 
 	@Override
