@@ -5,7 +5,7 @@ import scala.collection.mutable.Buffer
 import eu.wisebed.api._
 import javax.xml.datatype.DatatypeFactory
 import scala.collection.JavaConversions._
-import CalConv.greg2XMLGreg
+import WisebedApiConversions._
 import javax.xml.datatype.XMLGregorianCalendar
 import java.text.SimpleDateFormat
 import org.slf4j.LoggerFactory
@@ -75,8 +75,4 @@ object Reservation {
 	}
 }
 
-object CalConv {
-	implicit def greg2XMLGreg(greg: GregorianCalendar):XMLGregorianCalendar = {
-		DatatypeFactory.newInstance().newXMLGregorianCalendar(greg);
-	}
-}
+

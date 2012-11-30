@@ -2,6 +2,9 @@ package de.fau.wisebed
 
 import eu.wisebed.api._
 import scala.collection.JavaConversions._
+import java.util.GregorianCalendar
+import javax.xml.datatype.XMLGregorianCalendar
+import javax.xml.datatype.DatatypeFactory
 
 object WisebedApiConversions {
 	
@@ -34,6 +37,10 @@ object WisebedApiConversions {
 			rv.setUrnPrefix(x.getUrnPrefix)
 			rv
 		})
+	}
+	
+	implicit def greg2XMLGreg(greg: GregorianCalendar):XMLGregorianCalendar = {
+		DatatypeFactory.newInstance().newXMLGregorianCalendar(greg);
 	}
 	
 }

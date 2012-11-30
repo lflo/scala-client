@@ -19,13 +19,7 @@ object MoteAliveState extends Enumeration {
     		 case _ => Error
     	 }
      }
-     
-     
-  
 }
-
-
-
 
 
 class NodesAliveJob(nodes:List[String]) extends Job {
@@ -42,13 +36,12 @@ class NodesAliveJob(nodes:List[String]) extends Job {
 		stat.clone
 	}
 
-	def statusUpdate(stats:Traversable[Status]):Unit = {
-		for(s <- stats){			
-			val v = s.getValue()
-			val node = s.getNodeId
-			log.debug("Got state for " + node + ": " + v )
-			synchronized {stat(node) =  idToEnum(v)}
-		}
+	def statusUpdate(s:Status):Unit = {
+					
+		val v = s.getValue()
+		val node = s.getNodeId
+		log.debug("Got state for " + node + ": " + v )
+		stat(node) =  idToEnum(v)
 		checkdone
 	}
 	
@@ -56,7 +49,7 @@ class NodesAliveJob(nodes:List[String]) extends Job {
 
 	private def checkdone = {
 				
-		if (synchronized{stat.forall(_._2 != NotSet)}) {
+		if (stat.forall(_._2 != NotSet)) {
 			//From here on do not need to synchronize any more as no more changes are to be expected.
 			
 			def getNodeState(sb: StringBuilder, st:MoteAliveState):StringBuilder = {

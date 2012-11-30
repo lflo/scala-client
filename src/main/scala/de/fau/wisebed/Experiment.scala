@@ -14,7 +14,9 @@ import Reservation.secretReservationKey_Rs2SM
 import scala.collection._
 import java.util.GregorianCalendar
 import java.util.Date
-
+import de.fau.wisebed.WisebedApiConversions._
+import de.fau.wisebed.messages.MsgLiner
+import de.fau.wisebed.messages.MessageLogger
 
 
 class MoteMessage(val node:String, val data:Array[Byte], val time:GregorianCalendar) {
@@ -33,20 +35,20 @@ class Experiment (res:List[Reservation], implicit val tb:Testbed) {
 
 	
 	val log = LoggerFactory.getLogger(this.getClass)
-	
-	var messages = List[MoteMessage]()
+
 
 	var active = true
 
 	val controller = new ExperimentController
 
-	controller.onMessage { msg: Message =>
-		val mm = new MoteMessage(msg)
-		messages ::= mm
-		// val time = (new GregorianCalendar).getTimeInMillis - msg.getTimestamp.toGregorianCalendar.getTimeInMillis
-		log.debug("Got message from " + mm.node + ": " + mm.dataString)
+	
+	if(log.isTraceEnabled){
+		val msghndl = new MessageLogger(mi => {
+			import WrappedMessage._
+			log.debug("Got message from " + mi.node + ": " + mi.dataString)
+		}) with MsgLiner
+		controller.onMessage(msghndl)
 	}
-
 	controller.onEnd {
 		active = false
 		stopdel()
@@ -73,11 +75,8 @@ class Experiment (res:List[Reservation], implicit val tb:Testbed) {
 		if(active == false) return null
 		val prog = RichProgram(file);
 		val map = List.fill(nodes.size){new java.lang.Integer(0)}
-		val rid:String = wsnService.flashPrograms(nodes, map, List(prog))
 		val job = new FlashJob(nodes)
-		controller.onStatus(rid) { s: Status =>
-			job.statusUpdate(List(s))
-		}
+		controller.addJob(job, wsnService.flashPrograms(nodes, map, List(prog)))
 		job
 		
 	}
@@ -85,35 +84,25 @@ class Experiment (res:List[Reservation], implicit val tb:Testbed) {
 	def areNodesAlive(nodes:List[String]):NodesAliveJob = {
 		if(active == false) return null
 		val job = new NodesAliveJob(nodes)
-		val rid = wsnService.areNodesAlive(nodes)
-		controller.onStatus(rid) { s: Status =>
-			job.statusUpdate(List(s))
-		}
+		controller.addJob(job, wsnService.areNodesAlive(nodes))
 		job
 	}
 	
 	def resetNodes(nodes:List[String]):NodeOkFailJob = {
 		if(active == false) return null
 		val job = new NodeOkFailJob("reset", nodes)
-		val rid = wsnService.resetNodes(nodes)
-		controller.onStatus(rid) { s: Status =>
-			job.statusUpdate(List(s))
-		}
+		controller.addJob(job, wsnService.resetNodes(nodes))
 		job
 	}
 	
 	def send(nodes:List[String], data:String):NodeOkFailJob = {
-		import CalConv._
 		if(active == false) return null
 		val job = new NodeOkFailJob("send" , nodes)
 		val msg = new common.Message
 		msg.setBinaryData(data.toArray.map(_.toByte))
 		msg.setSourceNodeId("urn:fauAPI:none:0xFFFF")
 		msg.setTimestamp(new GregorianCalendar)
-		val rid = wsnService.send(nodes, msg)
-		controller.onStatus(rid) { s: Status =>
-			job.statusUpdate(List(s))
-		}
+		controller.addJob(job, wsnService.send(nodes, msg))
 		job
 	}
 	
@@ -125,12 +114,13 @@ class Experiment (res:List[Reservation], implicit val tb:Testbed) {
 	def setChannelHandler(nodes:List[String], cnf:wsn.ChannelHandlerConfiguration):NodeOkFailJob = {
 		val cn = List.fill(nodes.size){cnf}
 		val job =  new NodeOkFailJob("setChannelHandler", nodes)
-		val rid = wsnService.setChannelPipeline(nodes, cn)
-		controller.onStatus(rid) { s: Status =>
-			job.statusUpdate(List(s))
-		}
+		controller.addJob(job,wsnService.setChannelPipeline(nodes, cn))
 		job
 		
+	}
+	
+	def addMessageInput(mi:messages.MessageInput) {
+		controller.onMessage(mi)
 	}
 	
 }

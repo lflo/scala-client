@@ -111,7 +111,7 @@
 					  <launchers>
 						<launcher>
 						  <id>foo</id>
-						  <mainClass>MyExperiment</mainClass>
+						  <mainClass>de.fau.wisebed.TestClient</mainClass>
 						  <args>
 							<arg>hw.ihex</arg>
 						  </args>

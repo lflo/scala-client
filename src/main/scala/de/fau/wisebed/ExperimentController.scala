@@ -4,11 +4,8 @@ import java.lang.Override
 import java.net.InetAddress
 import java.net.ServerSocket
 import java.util.concurrent.Executors
-
 import scala.collection.JavaConversions.asScalaBuffer
-
 import org.slf4j.LoggerFactory
-
 import de.uniluebeck.itm.tr.util.UrlUtils
 import eu.wisebed.api.common.Message
 import eu.wisebed.api.controller.Controller
@@ -17,6 +14,18 @@ import eu.wisebed.api.controller.Status
 import javax.jws.WebParam
 import javax.jws.WebService
 import javax.xml.ws.Endpoint
+import scala.collection.mutable.Buffer
+import scala.collection.mutable.SynchronizedBuffer
+import scala.collection.mutable.ListBuffer
+import scala.collection.mutable.ArrayBuffer
+import de.fau.wisebed.jobs.Job
+import com.google.common.collect.Synchronized
+import scala.collection.mutable.SynchronizedMap
+import scala.collection.mutable.ListMap
+import scala.concurrent.SyncVar
+import scala.concurrent.Lock
+import scala.actors.Actor
+
 
 @WebService(
 		serviceName = "ControllerService",
@@ -39,39 +48,81 @@ class ExperimentController extends Controller {
 
 	log.debug("Successfully started ExperimentController at " + bindAllInterfacesUrl)
 	
-	var messageCallbacks = List[Message => Unit]()
-	var statusCallbacks = List[RequestStatus => Unit]()
-	var requestStatusCallbacks = Map[String, Status => Unit]()
+	val messageHandlers = new ArrayBuffer[messages.MessageInput] with SynchronizedBuffer[messages.MessageInput] 
 	var notificationCallbacks = List[String => Unit]()
 	var endCallbacks = List[() => Unit]()
-
+	
+	case object ReqJob
+	case class AddJob(id:String, job:Job)
+	
+	val sDisp = new Actor{
+  		private var rjob = 0
+  		private var rsBuf = List[RequestStatus]()
+  		private val jobs =  new ListMap[String, Job]
+  		
+  		private def sendJob(rs:RequestStatus){
+  			jobs.get(rs.getRequestId) match {
+				case x:Some[Job] => rs.getStatus.foreach(s => {x.get ! s ; log.debug("Dispatching {}", rs.getRequestId) }) //Send to Job
+				case _ => { 
+					if(rjob > 0){
+						rsBuf ::= rs
+					} else	{
+						log.error("Got Job id {} without Job", rs.getRequestId)
+					}
+				}	
+			}  				
+  		}
+  		
+  		
+  		def act () {
+  			log.debug("Actor Started")
+  			/** @todo terminate? */
+  			loopWhile(true){
+  				react {
+  					case s:RequestStatus => sendJob(s)
+  					case ReqJob => rjob+=1
+  					case AddJob(s,j) =>
+  						log.debug("Adding job {}", s)
+  						jobs += s->j
+  						j.start
+  						rjob -= 1
+  						val buf = rsBuf
+  						rsBuf = List[RequestStatus]()
+  						buf.foreach(sendJob(_))
+  					case x => log.error("Got unknow class: {}", x.getClass.toString)
+  				}
+  			}
+  		}
+  	}
+	
+  	sDisp.start
+	
 	@Override
 	def receive(@WebParam(name = "msg", targetNamespace = "") msg:java.util.List[Message]) {
-		for(cb <- messageCallbacks; m <- msg) cb(m)
+		for(cb <- messageHandlers; m <- msg) cb ! m
 	}
 
-	def onMessage(callback: Message => Unit) {
-		messageCallbacks.synchronized{
-			messageCallbacks ::= callback
-		}
+	def onMessage(mi:messages.MessageInput) {
+			messageHandlers +=  mi
+			mi.start
 	}
 
 	@Override
 	def receiveStatus(@WebParam(name = "status", targetNamespace = "") status:java.util.List[RequestStatus]) {
-		for(cb <- statusCallbacks; s <- status) cb(s)
-		for(s <- status; cb <- requestStatusCallbacks.get(s.getRequestId); rs <- s.getStatus) cb(rs)
+		//Send to dispetcher	
+		status.foreach( rs => {
+			log.debug("Got Message for {} - sending to Dispatcher", rs.getRequestId)
+			sDisp ! rs	
+		})
 	}
 
-	def onStatus(callback: RequestStatus => Unit) {
-		statusCallbacks.synchronized{
-			statusCallbacks ::= callback
-		}
-	}
 
-	def onStatus(requestID: String)(callback: Status => Unit) {
-		requestStatusCallbacks.synchronized{
-			requestStatusCallbacks += requestID -> callback
-		}
+	def addJob(j:Job, rid: => String) {
+		//Send JRequest
+		sDisp ! ReqJob
+		//Get Job
+		val id:String = rid		
+		sDisp ! AddJob(id, j)
 	}
 
 	@Override

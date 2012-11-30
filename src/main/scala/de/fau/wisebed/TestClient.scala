@@ -2,20 +2,21 @@ package de.fau.wisebed
 
 import java.util.Calendar
 import java.util.GregorianCalendar
-
 import scala.collection.JavaConversions.asScalaBuffer
-
 import org.apache.log4j.Level
 import org.slf4j.LoggerFactory
-
 import de.fau.wisebed.Reservation.reservation2CRD
 import de.fau.wisebed.jobs.MoteAliveState._
 import de.fau.wisebed.wrappers.WrappedChannelHandlerConfiguration
 import de.fau.wisebed.wrappers.WrappedChannelHandlerConfiguration._
+import de.fau.wisebed.wrappers.WrappedMessage._
 import de.uniluebeck.itm.tr.util.Logging
+import eu.wisebed.api.common._
+import de.fau.wisebed.messages.MsgLiner
+import messages.MessageLogger
 
-object MyExperiment {
-	val log = LoggerFactory.getLogger("MyExperiment");
+object TestClient {
+	val log = LoggerFactory.getLogger(this.getClass);
 	
 	val ffile = "sky-shell.ihex"
 	val smEndpointURL = "http://i4dr.informatik.uni-erlangen.de:10011/sessions"
@@ -25,7 +26,7 @@ object MyExperiment {
 	val flash = false
 		
 	def main(args: Array[String]) {
-		Logging.setLoggingDefaults(Level.ALL) // new PatternLayout("%-11d{HH:mm:ss,SSS} %-5p - %m%n"))
+		Logging.setLoggingDefaults(Level.DEBUG) // new PatternLayout("%-11d{HH:mm:ss,SSS} %-5p - %m%n"))
 
 		//Get Motes
 		log.debug("Starting Testbed")
@@ -47,7 +48,7 @@ object MyExperiment {
 		
 		
 		log.debug("Requesting reservations")
-		var res = tb.getReservations(240)
+		var res = tb.getReservations(20)
 		
 		for(r <- res) {
 			log.debug("Got Reservations: \n" +  r.dateString() + " for " + r.getNodeURNs.mkString(", ")) 
@@ -64,6 +65,14 @@ object MyExperiment {
 		}
 		
 		val exp = new Experiment(res.toList, tb)
+		
+		
+
+		
+		exp.addMessageInput(  new MessageLogger(mi => {
+			import wrappers.WrappedMessage._
+			log.info("Got message from " + mi.node + ": " + mi.dataString)
+		}) with MsgLiner)
 		
 		log.debug("Requesting Motestate")
 		val statusj = exp.areNodesAlive(motes)

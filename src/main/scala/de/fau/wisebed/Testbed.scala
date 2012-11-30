@@ -11,7 +11,6 @@ import java.util.Calendar
 import java.net.InetAddress
 import javax.xml.datatype.DatatypeFactory
 import scala.collection.JavaConversions._
-import CalConv.greg2XMLGreg
 import WisebedApiConversions._
 
 class Testbed(val smEndpointURL:String, val snaaEndpointURL:String, val rsEndpointURL:String) {
