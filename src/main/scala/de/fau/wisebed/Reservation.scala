@@ -34,16 +34,16 @@ class Reservation(_from:GregorianCalendar, _to:GregorianCalendar,_nodeURNs:List[
 		secretReservationKeys ++= keys
 	}
 	
- 	def asConfidentialReservationData:rs.ConfidentialReservationData = { 
-   	 	val rv = new rs.ConfidentialReservationData
-   	 	rv.setFrom(lfrom)
-    		rv.setTo(lto)
-    		rv.setUserData(user)
-    		rv.getNodeURNs.addAll(nodeURNs)
-    		rv
- 	}
-    
- 	def copy():Reservation = {
+	def asConfidentialReservationData:rs.ConfidentialReservationData = { 
+		val rv = new rs.ConfidentialReservationData
+		rv.setFrom(lfrom)
+		rv.setTo(lto)
+		rv.setUserData(user)
+		rv.getNodeURNs.addAll(nodeURNs)
+		rv
+	}
+
+	def copy():Reservation = {
  		val rv = new Reservation(from, to, nodeURNs, user)
  		rv.addKeys(secretReservationKeys)
  		rv
@@ -65,8 +65,8 @@ object Reservation {
 	
 	implicit def secretReservationKey_Rs2SM(rsKs: Traversable[rs.SecretReservationKey]): Buffer[sm.SecretReservationKey] = {
 		val rv = Buffer[sm.SecretReservationKey]()
-		for(rsK <- rsKs){
-			val rk = new sm.SecretReservationKey;
+		for(rsK <- rsKs) {
+			val rk = new sm.SecretReservationKey
 			rk.setSecretReservationKey(rsK.getSecretReservationKey)
 			rk.setUrnPrefix(rsK.getUrnPrefix)
 			rv += rk
@@ -74,5 +74,3 @@ object Reservation {
 		rv
 	}
 }
-
-

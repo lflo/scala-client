@@ -18,7 +18,6 @@ import de.fau.wisebed.WisebedApiConversions._
 import de.fau.wisebed.messages.MsgLiner
 import de.fau.wisebed.messages.MessageLogger
 
-
 class MoteMessage(val node:String, val data:Array[Byte], val time:GregorianCalendar) {
 	def this (m:common.Message){
 		this(m.getSourceNodeId, m.getBinaryData, m.getTimestamp.toGregorianCalendar)
@@ -29,19 +28,14 @@ class MoteMessage(val node:String, val data:Array[Byte], val time:GregorianCalen
 
 /**
  * @todo There is a concurrency issue if a message is received before the id is added to the jobmap (this is unlikely, though)
- */
-	
+ */	
 class Experiment (res:List[Reservation], implicit val tb:Testbed) {
-
-	
 	val log = LoggerFactory.getLogger(this.getClass)
-
 
 	var active = true
 
 	val controller = new ExperimentController
 
-	
 	if(log.isTraceEnabled){
 		val msghndl = new MessageLogger(mi => {
 			import WrappedMessage._
@@ -73,12 +67,11 @@ class Experiment (res:List[Reservation], implicit val tb:Testbed) {
 	
 	def flash(file:String, nodes:List[String]):FlashJob = {
 		if(active == false) return null
-		val prog = RichProgram(file);
+		val prog = RichProgram(file)
 		val map = List.fill(nodes.size){new java.lang.Integer(0)}
 		val job = new FlashJob(nodes)
 		controller.addJob(job, wsnService.flashPrograms(nodes, map, List(prog)))
-		job
-		
+		job	
 	}
 	
 	def areNodesAlive(nodes:List[String]):NodesAliveJob = {
@@ -116,11 +109,9 @@ class Experiment (res:List[Reservation], implicit val tb:Testbed) {
 		val job =  new NodeOkFailJob("setChannelHandler", nodes)
 		controller.addJob(job,wsnService.setChannelPipeline(nodes, cn))
 		job
-		
 	}
 	
 	def addMessageInput(mi:messages.MessageInput) {
 		controller.onMessage(mi)
 	}
-	
 }

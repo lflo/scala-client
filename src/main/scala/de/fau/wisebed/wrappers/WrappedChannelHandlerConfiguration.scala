@@ -5,7 +5,6 @@ import de.fau.wisebed.WisebedApiConversions._
 import scala.collection.JavaConversions._
 
 class WrappedChannelHandlerConfiguration(chc:ChannelHandlerConfiguration = new ChannelHandlerConfiguration) {
-
 	val wconf = new WrappedKeyValuePairMap(chc.getConfiguration)
 	
 	def this (name:String)  {
@@ -15,7 +14,6 @@ class WrappedChannelHandlerConfiguration(chc:ChannelHandlerConfiguration = new C
 	
 	def channelHandlerConfiguration = chc
 	
-	
 	def name:String = chc.getName
 	def name_=(n:String) {chc.setName(n)}
 	
@@ -23,7 +21,6 @@ class WrappedChannelHandlerConfiguration(chc:ChannelHandlerConfiguration = new C
 	def conf_=(k:String, v:String)  = wconf += k -> v
 	
 	def getConfMap = wconf	
-
 }
 
 object WrappedChannelHandlerConfiguration {

@@ -5,25 +5,22 @@ import java.util.GregorianCalendar
 import scala.collection.JavaConversions.asScalaBuffer
 import org.apache.log4j.Level
 import org.slf4j.LoggerFactory
-import de.fau.wisebed.Reservation.reservation2CRD
-import de.fau.wisebed.jobs.MoteAliveState._
-import de.fau.wisebed.wrappers.WrappedChannelHandlerConfiguration
-import de.fau.wisebed.wrappers.WrappedChannelHandlerConfiguration._
-import de.fau.wisebed.wrappers.WrappedMessage._
 import de.uniluebeck.itm.tr.util.Logging
 import eu.wisebed.api.common._
-import de.fau.wisebed.messages.MsgLiner
+import Reservation.reservation2CRD
+import jobs.MoteAliveState._
+import wrappers._
+import wrappers.WrappedChannelHandlerConfiguration._
+import wrappers.WrappedMessage._
+import messages.MsgLiner
 import messages.MessageLogger
 
 object TestClient {
-	val log = LoggerFactory.getLogger(this.getClass);
-	
-	val ffile = "sky-shell.ihex"
+	val log = LoggerFactory.getLogger(this.getClass)
+
 	val smEndpointURL = "http://i4dr.informatik.uni-erlangen.de:10011/sessions"
 	val snaaEndpointURL = "http://i4dr.informatik.uni-erlangen.de:20011/snaa"
 	val rsEndpointURL = "http://i4dr.informatik.uni-erlangen.de:30011/rs"
-	
-	val flash = false
 		
 	def main(args: Array[String]) {
 		Logging.setLoggingDefaults(Level.DEBUG) // new PatternLayout("%-11d{HH:mm:ss,SSS} %-5p - %m%n"))
@@ -36,11 +33,10 @@ object TestClient {
 		log.debug("Motes: " + motes.mkString(", "))
 		
 		/* FIXME: This does not work!
-		 * log.debug("Requesting Motesate")
+		log.debug("Requesting Motesate")
 		val statusj = tb.areNodesAlive(motes)
 		val status = statusj.status
-		status.foreach(m => log.info(m._1 + ": " +  m._2.toString))
-		* 
+		status.foreach(m => log.info(m._1 + ": " +  m._2)) 
 		*/
 		
 		log.debug("Logging in")
@@ -66,8 +62,6 @@ object TestClient {
 		
 		val exp = new Experiment(res.toList, tb)
 		
-		
-
 		
 		exp.addMessageInput(  new MessageLogger(mi => {
 			import wrappers.WrappedMessage._
@@ -100,9 +94,9 @@ object TestClient {
 		}
 		
 		
-		if(flash){
+		if(args.length > 0){
 			log.debug("Flashing")
-			val flashj = exp.flash(ffile, activemotes)
+			val flashj = exp.flash(args(0), activemotes)
 			flashj()
 		}
 		

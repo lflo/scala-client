@@ -26,17 +26,16 @@ import scala.concurrent.SyncVar
 import scala.concurrent.Lock
 import scala.actors.Actor
 
-
 @WebService(
-		serviceName = "ControllerService",
-		targetNamespace = "urn:ControllerService",
-		portName = "ControllerPort",
-		endpointInterface = "eu.wisebed.api.controller.Controller"
+	serviceName = "ControllerService",
+	targetNamespace = "urn:ControllerService",
+	portName = "ControllerPort",
+	endpointInterface = "eu.wisebed.api.controller.Controller"
 )
 class ExperimentController extends Controller {
-  	val log = LoggerFactory.getLogger(this.getClass)
+	val log = LoggerFactory.getLogger(this.getClass)
 
-  	val url = "http://" + InetAddress.getLocalHost.getCanonicalHostName + ":" + ExperimentController.port + "/controller/" + ExperimentController.id
+	val url = "http://" + InetAddress.getLocalHost.getCanonicalHostName + ":" + ExperimentController.port + "/controller/" + ExperimentController.id
 	val bindAllInterfacesUrl = UrlUtils.convertHostToZeros(url)
 
 	log.debug("Starting ExperimentController...")
@@ -55,13 +54,13 @@ class ExperimentController extends Controller {
 	case object ReqJob
 	case class AddJob(id:String, job:Job)
 	
-	val sDisp = new Actor{
-  		private var rjob = 0
-  		private var rsBuf = List[RequestStatus]()
-  		private val jobs =  new ListMap[String, Job]
-  		
-  		private def sendJob(rs:RequestStatus){
-  			jobs.get(rs.getRequestId) match {
+	val sDisp = new Actor {
+		private var rjob = 0
+		private var rsBuf = List[RequestStatus]()
+		private val jobs =  new ListMap[String, Job]
+		
+		private def sendJob(rs:RequestStatus){
+			jobs.get(rs.getRequestId) match {
 				case x:Some[Job] => rs.getStatus.foreach(s => {x.get ! s ; log.debug("Dispatching {}", rs.getRequestId) }) //Send to Job
 				case _ => { 
 					if(rjob > 0){
@@ -71,31 +70,30 @@ class ExperimentController extends Controller {
 					}
 				}	
 			}  				
-  		}
-  		
-  		
-  		def act () {
-  			log.debug("Actor Started")
-  			/** @todo terminate? */
-  			loopWhile(true){
-  				react {
-  					case s:RequestStatus => sendJob(s)
-  					case ReqJob => rjob+=1
-  					case AddJob(s,j) =>
-  						log.debug("Adding job {}", s)
-  						jobs += s->j
-  						j.start
-  						rjob -= 1
-  						val buf = rsBuf
-  						rsBuf = List[RequestStatus]()
-  						buf.foreach(sendJob(_))
-  					case x => log.error("Got unknow class: {}", x.getClass.toString)
-  				}
-  			}
-  		}
-  	}
-	
-  	sDisp.start
+		}
+
+		def act () {
+			log.debug("Actor Started")
+			/** @todo terminate? */
+			loop {
+				react {
+					case s:RequestStatus => sendJob(s)
+					case ReqJob => rjob+=1
+					case AddJob(s,j) =>
+					log.debug("Adding job {}", s)
+					jobs += s->j
+					j.start
+					rjob -= 1
+					val buf = rsBuf
+					rsBuf = List[RequestStatus]()
+					buf.foreach(sendJob(_))
+					case x => log.error("Got unknow class: {}", x.getClass.toString)
+				}
+			}
+		}
+	}
+
+	sDisp.start
 	
 	@Override
 	def receive(@WebParam(name = "msg", targetNamespace = "") msg:java.util.List[Message]) {
@@ -103,8 +101,8 @@ class ExperimentController extends Controller {
 	}
 
 	def onMessage(mi:messages.MessageInput) {
-			messageHandlers +=  mi
-			mi.start
+		messageHandlers +=  mi
+		mi.start
 	}
 
 	@Override
@@ -115,7 +113,6 @@ class ExperimentController extends Controller {
 			sDisp ! rs	
 		})
 	}
-
 
 	def addJob(j:Job, rid: => String) {
 		//Send JRequest
@@ -146,8 +143,7 @@ class ExperimentController extends Controller {
 	}
 }
 
-
-object ExperimentController{
+object ExperimentController {
 	private var intid = 0
 
 	private def id:String = {(intid +=1); intid.toString}

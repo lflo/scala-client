@@ -15,7 +15,6 @@ class WrappedMessage (_msg:common.Message) {
 	def timestamp = msg.getTimestamp.toGregorianCalendar
 	def timestamp_=(gc:GregorianCalendar) = msg.setTimestamp(gc)
 	
-	
 	def msg = _msg
 	
 	def copy:common.Message = {
@@ -25,7 +24,6 @@ class WrappedMessage (_msg:common.Message) {
 		rv.setTimestamp(msg.getTimestamp)
 		rv
 	}
-	
 }
 
 object WrappedMessage{

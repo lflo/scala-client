@@ -6,13 +6,11 @@ import scala.collection.mutable
 import eu.wisebed.api.common.Message
 
 trait MsgLiner extends MessageInput {
-
 	private var mbuf = mutable.Map[String, common.Message]()
 
 	abstract override def handleMsg(msg: common.Message) {
 		val wmsg = mbuf.remove(msg.node) match {
-			case o: Some[Message] => {
-				val old = o.get
+			case Some(old) => {
 				old.data ++= msg.data
 				old.timestamp = msg.timestamp
 				old
@@ -32,9 +30,5 @@ trait MsgLiner extends MessageInput {
 				mbuf += wmsg.node -> wmsg
 			}
 		})
-		
-
 	}
-
 }
-

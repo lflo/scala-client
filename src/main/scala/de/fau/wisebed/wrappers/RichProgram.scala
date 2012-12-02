@@ -7,9 +7,7 @@ import java.io.FileInputStream
 import java.io.BufferedInputStream
 import java.io.DataInputStream
 
-class RichProgram extends Program {
-
-}
+class RichProgram extends Program {}
 
 object RichProgram {
   	def apply( pathName:String,  name:String = "", other:String ="",   platform:String ="",  version:String="1.0"):Program = {

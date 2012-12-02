@@ -21,10 +21,7 @@ class WrappedChannelHandlerDescription(chd:ChannelHandlerDescription) {
 	}
 	
 	def channelHandlerDescription = chd
-	
-	
 }
-
 
 object WrappedChannelHandlerDescription {
 	implicit def chd2wchd(chd:ChannelHandlerDescription):WrappedChannelHandlerDescription = new WrappedChannelHandlerDescription(chd)

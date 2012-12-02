@@ -4,31 +4,27 @@ import scala.collection.Traversable
 import eu.wisebed.api.controller.Status
 import scala.collection._
 import org.slf4j.LoggerFactory
-
-
 import java.util.Collections.SynchronizedMap
 
 object MoteAliveState extends Enumeration {
-     type MoteAliveState = Value
-     val Alive, Dead, Unknown, Error, NotSet  = Value
-     def idToEnum(id:Int):MoteAliveState = {
-    	 id match {
-    		 case 1 => Alive
-    		 case 0 => Dead
-    		 case -1 => Unknown
-    		 case _ => Error
-    	 }
-     }
-}
+	type MoteAliveState = Value
+	val Alive, Dead, Unknown, Error, NotSet  = Value
 
+	def idToEnum(id:Int):MoteAliveState = id match {
+		case 1  => Alive
+		case 0  => Dead
+		case -1 => Unknown
+		case _  => Error
+	}
+}
 
 class NodesAliveJob(nodes:List[String]) extends Job {
 	import MoteAliveState._
-	val log = LoggerFactory.getLogger(this.getClass);
+
+	val log = LoggerFactory.getLogger(this.getClass)
+
 	val stat = new mutable.ListMap[String, MoteAliveState]
 	stat ++= nodes.map(_ -> NotSet)
-	
-	
 	
 	def status():Map[String,MoteAliveState] = {
 		apply		
@@ -36,8 +32,7 @@ class NodesAliveJob(nodes:List[String]) extends Job {
 		stat.clone
 	}
 
-	def statusUpdate(s:Status):Unit = {
-					
+	def statusUpdate(s:Status):Unit = {		
 		val v = s.getValue()
 		val node = s.getNodeId
 		log.debug("Got state for " + node + ": " + v )
@@ -45,10 +40,7 @@ class NodesAliveJob(nodes:List[String]) extends Job {
 		checkdone
 	}
 	
-	
-
 	private def checkdone = {
-				
 		if (stat.forall(_._2 != NotSet)) {
 			//From here on do not need to synchronize any more as no more changes are to be expected.
 			
@@ -58,14 +50,11 @@ class NodesAliveJob(nodes:List[String]) extends Job {
 				sb
 			}
 						
-			_success = stat.forall(_._2 == Alive )
-			
+			_success = stat.forall(_._2 == Alive)
 			
 			val sb = MoteAliveState.values.foldLeft(new StringBuilder)(getNodeState(_ , _))
 			log.debug("Mote States are:" + sb.toString)
 			done()
-
 		}
 	}
-
 }

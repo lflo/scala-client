@@ -22,8 +22,6 @@ class WrappedKeyValuePairMap(_ls:java.util.List[KeyValuePair]) extends mutable.M
 	def -= (key: String) = { remove(key); WrappedKeyValuePairMap.this }
 
 	private def remkey(key:String)  {
-		ls.filter(_.getKey == key).foreach(ls -= _) 
-
+		ls.filter(_.getKey == key).foreach(ls -= _)
 	}
-	
 }

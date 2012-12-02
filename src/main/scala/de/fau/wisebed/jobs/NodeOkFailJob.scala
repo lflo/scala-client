@@ -5,36 +5,24 @@ import eu.wisebed.api.controller.Status
 import scala.collection._
 import org.slf4j.LoggerFactory
 
-
 object OKFailState extends Enumeration {
-     type OKFailState = Value
-     val OK, Failure, Unknown, NotSet  = Value
-     
-     
-     def idToEnum(id:Int):OKFailState = {
-    	 id match {
-    		 case 1 => OK
-    		 case 0 => Failure
-    		 case -1 => Unknown
-    	 }
-     }
-     
+	type OKFailState = Value
+	val OK, Failure, Unknown, NotSet  = Value
+
+	def idToEnum(id:Int):OKFailState = id match {
+		case 1 => OK
+		case 0 => Failure
+		case -1 => Unknown
+	}	
 }
-
-
-
-
 
 class NodeOkFailJob(name:String, nodes:List[String]) extends Job {
 	import OKFailState._
-	
-	
+		
 	val log = LoggerFactory.getLogger(this.getClass + "." + name)
 	
 	val stat = new mutable.ListMap[String, OKFailState]
 	stat ++= nodes.map(_ -> NotSet)
-	
-	
 	
 	def status():Map[String,OKFailState] = {
 		apply		
@@ -51,10 +39,7 @@ class NodeOkFailJob(name:String, nodes:List[String]) extends Job {
 		checkdone
 	}
 	
-	
-
-	private def checkdone = {
-				
+	private def checkdone = {			
 		if (stat.forall(_._2 != NotSet)) {
 			//From here on do not need to synchronize any more as no more changes are to be expected.
 			
@@ -66,12 +51,9 @@ class NodeOkFailJob(name:String, nodes:List[String]) extends Job {
 						
 			_success = stat.forall(v => { v._2 == OK })
 			
-			
 			val sb = OKFailState.values.foldLeft(new StringBuilder)(getNodeState(_ , _))
 			log.debug("Mote States are:" + sb.toString)
 			done()
-
 		}
 	}
-
 }

@@ -4,10 +4,8 @@ import eu.wisebed.api.controller.Status
 import scala.collection._
 import org.slf4j.LoggerFactory
 
-
 class FlashJob(nodes:Traversable[String]) extends Job {
-	val log = LoggerFactory.getLogger(this.getClass);
-	
+	val log = LoggerFactory.getLogger(this.getClass)
 	
 	val stat = mutable.Map[String, Int]()
 	stat ++= nodes.map(_ -> 0)
@@ -38,5 +36,4 @@ class FlashJob(nodes:Traversable[String]) extends Job {
 			log.info("Finished flashing motes: " + {if(_success) "OK" else "Failed"})
 		} 
 	}
-	
 }

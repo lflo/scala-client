@@ -28,8 +28,6 @@ class Testbed(val smEndpointURL:String, val snaaEndpointURL:String, val rsEndpoi
 	var currentWSNService:wsn.WSN = null
 	
 	lazy val controller = new ExperimentController
-
-
 	
 	// Public funcions
 	def getnodes(moteType:List[String] = List("telosb")):List[String] = {

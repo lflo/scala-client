@@ -7,33 +7,31 @@ import scala.actors.Actor
 import org.slf4j.Logger
 import scala.actors.TIMEOUT
 
-
-
-
 abstract class Job extends Actor with Future[Boolean] {
 	var id:String = ""
 	var st_done = false
 	val log:Logger
 	
-	protected var _success = false;
+	protected var _success = false
 	def success = _success
 
 	def statusUpdate(su:Status):Unit
 	
 	def act(){
 		log.debug("Job Actor started")
+
 		loopWhile(!st_done) {
-			react{				
+			react {
 				case s:Status =>
-					statusUpdate(s)						
+					statusUpdate(s)
 				case x =>
-					log.error("Got unknow class: {}", x.getClass.toString)
+					log.error("Got unknown class: {}", x.getClass)
 			}
 		}
+
 		log.debug("Job Actor stopped")
 	}
 	
-		
 	def isDone:Boolean = st_done
 
 	def apply:Boolean  = synchronized {
