@@ -27,6 +27,9 @@ import scala.concurrent.Lock
 import scala.actors.Actor
 
 
+case class RemJob(job:Job)
+
+
 @WebService(
 		serviceName = "ControllerService",
 		targetNamespace = "urn:ControllerService",
@@ -54,6 +57,7 @@ class ExperimentController extends Controller {
 	
 	case object ReqJob
 	case class AddJob(id:String, job:Job)
+	
 	
 	val sDisp = new Actor{
   		private var rjob = 0
@@ -89,6 +93,14 @@ class ExperimentController extends Controller {
   						val buf = rsBuf
   						rsBuf = List[RequestStatus]()
   						buf.foreach(sendJob(_))
+  					case RemJob(j) =>
+  						val foo = jobs.find(_._2 == j)
+  						jobs.find(_._2 == j) match {
+  							case Some(kv) =>
+  								log.debug("Removing job {}.", kv._1)
+  								jobs.remove(kv._1)
+  							case None => log.error("RemJob: Job {} not found.", j)
+  						}
   					case x => log.error("Got unknow class: {}", x.getClass.toString)
   				}
   			}
@@ -124,7 +136,8 @@ class ExperimentController extends Controller {
 		val id:String = rid		
 		sDisp ! AddJob(id, j)
 	}
-
+	
+	
 	@Override
 	def receiveNotification(@WebParam(name = "msg", targetNamespace = "") msg:java.util.List[String]) {
 		for(cb <- notificationCallbacks; s <- msg) cb(s)

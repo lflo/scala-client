@@ -6,14 +6,15 @@ import eu.wisebed.api.controller.RequestStatus
 import scala.actors.Actor
 import org.slf4j.Logger
 import scala.actors.TIMEOUT
-
-
+import de.fau.wisebed.RemJob
+import scala.actors.OutputChannel
 
 
 abstract class Job extends Actor with Future[Boolean] {
 	var id:String = ""
 	var st_done = false
 	val log:Logger
+	var expc:Option[OutputChannel[Any]] = None
 	
 	protected var _success = false;
 	def success = _success
@@ -25,6 +26,7 @@ abstract class Job extends Actor with Future[Boolean] {
 		loopWhile(!st_done) {
 			react{				
 				case s:Status =>
+					if(!expc.isDefined) expc = new Some(sender)
 					statusUpdate(s)						
 				case x =>
 					log.error("Got unknow class: {}", x.getClass.toString)
@@ -43,6 +45,7 @@ abstract class Job extends Actor with Future[Boolean] {
 	
 	protected def done() = synchronized {
 		st_done  = true
+		if(expc.isDefined) expc.get ! RemJob(this)
 		notify()
 	}
 }
