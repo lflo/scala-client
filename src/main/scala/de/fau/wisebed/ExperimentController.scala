@@ -26,6 +26,10 @@ import scala.concurrent.SyncVar
 import scala.concurrent.Lock
 import scala.actors.Actor
 
+case object ReqJob
+case class AddJob[S](id:String, job:Job[S])
+case class RemJob[S](job:Job[S])
+
 @WebService(
 	serviceName = "ControllerService",
 	targetNamespace = "urn:ControllerService",
@@ -51,9 +55,6 @@ class ExperimentController extends Controller {
 	var notificationCallbacks = List[String => Unit]()
 	var endCallbacks = List[() => Unit]()
 	
-	case object ReqJob
-	case class AddJob[S](id:String, job:Job[S])
-	
 	val sDisp = new Actor {
 		private var rjob = 0
 		private var rsBuf = List[RequestStatus]()
@@ -61,7 +62,11 @@ class ExperimentController extends Controller {
 		
 		private def sendJob(rs:RequestStatus){
 			jobs.get(rs.getRequestId) match {
-				case x:Some[Job[_]] => rs.getStatus.foreach(s => {x.get ! s ; log.debug("Dispatching {}", rs.getRequestId) }) //Send to Job
+				case x:Some[Job[_]] => rs.getStatus.foreach(s => {
+						// send to Job
+						x.get ! s
+						log.debug("Dispatching {}", rs.getRequestId)
+					})
 				case _ => { 
 					if(rjob > 0){
 						rsBuf ::= rs
@@ -80,14 +85,21 @@ class ExperimentController extends Controller {
 					case s:RequestStatus => sendJob(s)
 					case ReqJob => rjob+=1
 					case AddJob(s,j) =>
-					log.debug("Adding job {}", s)
-					jobs += s->j
-					j.start
-					rjob -= 1
-					val buf = rsBuf
-					rsBuf = List[RequestStatus]()
-					buf.foreach(sendJob(_))
-					case x => log.error("Got unknow class: {}", x.getClass.toString)
+						log.debug("Adding job {}", s)
+						jobs += s->j
+						j.start
+						rjob -= 1
+						val buf = rsBuf
+						rsBuf = List[RequestStatus]()
+						buf.foreach(sendJob(_))
+					case RemJob(j) =>
+  						jobs.find(_._2 == j) match {
+  							case Some(kv) =>
+  								log.debug("Removing job {}.", kv._1)
+  								jobs.remove(kv._1)
+  							case None => log.error("RemJob: Job {} not found.", j)
+  						}
+					case x => log.error("Got unknown class: {}", x.getClass)
 				}
 			}
 		}
@@ -121,7 +133,8 @@ class ExperimentController extends Controller {
 		val id:String = rid		
 		sDisp ! AddJob(id, j)
 	}
-
+	
+	
 	@Override
 	def receiveNotification(@WebParam(name = "msg", targetNamespace = "") msg:java.util.List[String]) {
 		for(cb <- notificationCallbacks; s <- msg) cb(s)
