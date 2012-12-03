@@ -4,39 +4,36 @@ import eu.wisebed.api.controller.Status
 import scala.collection._
 import org.slf4j.LoggerFactory
 
+object MoteFlashState extends Enumeration {
+	type MoteFlashState = Value
+	val OK, NotFound, InProgress, Unknown, Error  = Value
 
-class FlashJob(nodes:Traversable[String]) extends Job {
-	val log = LoggerFactory.getLogger(this.getClass);
-	
-	
-	val stat = mutable.Map[String, Int]()
-	stat ++= nodes.map(_ -> 0)
-	
-	def statusUpdate(s:Status):Unit = {
-		
-		val v = s.getValue()
-		val node = s.getNodeId 
-		
-		stat(node) = v
-		
-		if(v == -1){
+	def idToEnum(id:Int):MoteFlashState = id match {
+		case 100  => OK
+		case -2  => NotFound
+		case -1 => Error
+		case _  => InProgress
+	}
+}
+import MoteFlashState._
+
+class FlashJob(nodes:Seq[String]) extends Job[MoteFlashState](nodes) {
+	val log = LoggerFactory.getLogger(this.getClass)
+
+	val successValue = OK
+
+	def update(node:String, v:Int) = {
+		if(v == -1) {
 			log.warn("Failed to Flash mote: ", node)
-		} else if(v == -2){
+			Some(Error)
+		} else if(v == -2) {
 			log.warn("Mote " + node + " not found")
+			Some(NotFound)
+		} else if(v == 100) {
+			Some(OK)
 		} else {
-			log.info("Flashing mote " + node + " " + v + "%" )
+			log.info("Flashing mote " + node + " " + v + "%")
+			None
 		}
-			
-		
-		checkdone
 	}
-	
-	def checkdone = {
-		if(stat.forall(v => {v._2 == 100 || v._2 == -1 || v._2 == -2})){
-			_success = stat.forall(v => {v._2 == 100 })
-			done()
-			log.info("Finished flashing motes: " + {if(_success) "OK" else "Failed"})
-		} 
-	}
-	
 }

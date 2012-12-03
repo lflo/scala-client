@@ -2,17 +2,15 @@ package de.fau.wisebed.messages
 
 import eu.wisebed.api._
 import de.fau.wisebed.wrappers.WrappedMessage._
-import scala.collection.mutable
+import scala.collection
 import eu.wisebed.api.common.Message
 
 trait MsgLiner extends MessageInput {
+	private var mbuf = Map[String, Message]()
 
-	private var mbuf = mutable.Map[String, common.Message]()
-
-	abstract override def handleMsg(msg: common.Message) {
-		val wmsg = mbuf.remove(msg.node) match {
-			case o: Some[Message] => {
-				val old = o.get
+	abstract override def handleMsg(msg: Message) {
+		val wmsg = mbuf.get(msg.node) match {
+			case Some(old) => {
 				old.data ++= msg.data
 				old.timestamp = msg.timestamp
 				old
@@ -21,7 +19,7 @@ trait MsgLiner extends MessageInput {
 		}
 		
 		val str = wmsg.dataString
-		val split = str.split("\n").toList
+		val split = str.split("\n")
 		
 		split.foreach(x => {
 			val snd = wmsg.copy
@@ -32,9 +30,5 @@ trait MsgLiner extends MessageInput {
 				mbuf += wmsg.node -> wmsg
 			}
 		})
-		
-
 	}
-
 }
-
