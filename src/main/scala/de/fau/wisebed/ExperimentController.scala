@@ -89,9 +89,12 @@ class ExperimentController extends Controller {
   						log.debug("Adding job {}", s)
   						jobs += s->j
   						j.start
+  						//Remove job from outstanding jobs
   						rjob -= 1
+  						//Create new Buffer
   						val buf = rsBuf
   						rsBuf = List[RequestStatus]()
+  						//If there are other outstanding jobs, the message will be enqueued again
   						buf.foreach(sendJob(_))
   					case RemJob(j) =>
   						val foo = jobs.find(_._2 == j)
@@ -106,19 +109,28 @@ class ExperimentController extends Controller {
   			}
   		}
   	}
-	
   	sDisp.start
-	
+  	
+  	
 	@Override
 	def receive(@WebParam(name = "msg", targetNamespace = "") msg:java.util.List[Message]) {
 		for(cb <- messageHandlers; m <- msg) cb ! m
 	}
 
-	def onMessage(mi:messages.MessageInput) {
+	def addMessageInput(mi:messages.MessageInput) {
 			messageHandlers +=  mi
 			mi.start
 	}
 
+	def remMessageInput(mi:messages.MessageInput){
+		if(!messageHandlers.contains(mi)){
+			log.error("Failed to remove MessageInput: {}", mi)
+		} else {
+			messageHandlers -=  mi
+		}
+		
+	}
+	
 	@Override
 	def receiveStatus(@WebParam(name = "status", targetNamespace = "") status:java.util.List[RequestStatus]) {
 		//Send to dispetcher	

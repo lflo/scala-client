@@ -47,7 +47,7 @@ class Experiment (res:List[Reservation], implicit val tb:Testbed) {
 			import WrappedMessage._
 			log.debug("Got message from " + mi.node + ": " + mi.dataString)
 		}) with MsgLiner
-		controller.onMessage(msghndl)
+		controller.addMessageInput(msghndl)
 	}
 	controller.onEnd {
 		active = false
@@ -120,7 +120,7 @@ class Experiment (res:List[Reservation], implicit val tb:Testbed) {
 	}
 	
 	def addMessageInput(mi:messages.MessageInput) {
-		controller.onMessage(mi)
+		controller.addMessageInput(mi)
 	}
 	
 }

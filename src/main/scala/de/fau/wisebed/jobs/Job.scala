@@ -11,7 +11,6 @@ import scala.actors.OutputChannel
 
 
 abstract class Job extends Actor with Future[Boolean] {
-	var id:String = ""
 	var st_done = false
 	val log:Logger
 	var expc:Option[OutputChannel[Any]] = None
@@ -46,6 +45,7 @@ abstract class Job extends Actor with Future[Boolean] {
 	protected def done() = synchronized {
 		st_done  = true
 		if(expc.isDefined) expc.get ! RemJob(this)
+		else log.error("Unable to remove job: {} as no message was reveived yet.", this)
 		notify()
 	}
 }
