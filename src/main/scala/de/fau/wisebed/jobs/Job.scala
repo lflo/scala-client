@@ -8,14 +8,14 @@ import scala.collection._
 import scala.actors._
 import org.slf4j.Logger
 
-abstract class Job[S](nodes: Seq[String]) extends Actor with Future[Map[String, S]] {
+abstract class Job[S](nodes: Seq[Node]) extends Actor with Future[Map[Node, S]] {
 	val log:Logger
 
 	var expc:Option[OutputChannel[Any]] = None
 
-	private[jobs] var states = Map[String, SyncVar[S]](nodes.map(_ -> new SyncVar[S]) : _*)
+	private[jobs] var states = Map[Node, SyncVar[S]](nodes.map(_ -> new SyncVar[S]) : _*)
 
-	private[jobs] def update(node: String, v:Int):Option[S]
+	private[jobs] def update(node: Node, v:Int):Option[S]
 
 	val successValue: S
 
@@ -48,7 +48,7 @@ abstract class Job[S](nodes: Seq[String]) extends Actor with Future[Map[String, 
 		log.debug("Job actor stopped")
 	}
 
-	def apply():Map[String, S] = states.mapValues(_.get)
+	def apply():Map[Node, S] = states.mapValues(_.get)
 	def status = apply
 
 	def success:Boolean = apply().values.forall(_ == successValue)

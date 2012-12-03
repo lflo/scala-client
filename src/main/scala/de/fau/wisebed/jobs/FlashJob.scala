@@ -1,5 +1,6 @@
 package de.fau.wisebed.jobs
 
+import de.fau.wisebed._
 import eu.wisebed.api.controller.Status
 import scala.collection._
 import org.slf4j.LoggerFactory
@@ -17,12 +18,12 @@ object MoteFlashState extends Enumeration {
 }
 import MoteFlashState._
 
-class FlashJob(nodes:Seq[String]) extends Job[MoteFlashState](nodes) {
+class FlashJob(nodes:Seq[Node]) extends Job[MoteFlashState](nodes) {
 	val log = LoggerFactory.getLogger(this.getClass)
 
 	val successValue = OK
 
-	def update(node:String, v:Int) = {
+	def update(node:Node, v:Int) = {
 		if(v == -1) {
 			log.warn("Failed to Flash mote: ", node)
 			Some(Error)

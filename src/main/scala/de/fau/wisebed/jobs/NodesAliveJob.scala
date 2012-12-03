@@ -1,5 +1,6 @@
 package de.fau.wisebed.jobs
 
+import de.fau.wisebed._
 import scala.collection.Traversable
 import eu.wisebed.api.controller.Status
 import scala.collection._
@@ -19,10 +20,10 @@ object MoteAliveState extends Enumeration {
 }
 import MoteAliveState._
 
-class NodesAliveJob(nodes:Seq[String]) extends Job[MoteAliveState](nodes) {		
+class NodesAliveJob(nodes:Seq[Node]) extends Job[MoteAliveState](nodes) {		
 	val log = LoggerFactory.getLogger(this.getClass)
 
 	val successValue = Alive
 
-	def update(node:String, v:Int) = Some(idToEnum(v))
+	def update(node:Node, v:Int) = Some(idToEnum(v))
 }

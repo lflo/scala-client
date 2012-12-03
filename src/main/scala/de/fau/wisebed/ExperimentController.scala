@@ -163,7 +163,7 @@ object ExperimentController {
 	
 	private lazy val port:Int = {
 		val socket = new ServerSocket(0)
-		val port = socket.getLocalPort()
+		val port = socket.getLocalPort
 		socket.close()
 		port
 	}

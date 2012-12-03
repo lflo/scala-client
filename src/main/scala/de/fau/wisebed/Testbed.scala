@@ -1,6 +1,7 @@
 package de.fau.wisebed
 
 import jobs._
+import Node._
 import org.slf4j.LoggerFactory
 import eu.wisebed.wiseml.WiseMLHelper
 import eu.wisebed.api._
@@ -30,7 +31,7 @@ class Testbed(val smEndpointURL:String, val snaaEndpointURL:String, val rsEndpoi
 	lazy val controller = new ExperimentController
 	
 	// Public funcions
-	def getnodes(moteType:List[String] = List("telosb")):List[String] = {
+	def getnodes(moteType:List[String] = List("telosb")):List[Node] = {
 		WiseMLHelper.getNodeUrns(wiseML, moteType).toList
 	}
 	
@@ -79,7 +80,7 @@ class Testbed(val smEndpointURL:String, val snaaEndpointURL:String, val rsEndpoi
 		res
 	}
 	
-	def makeReservation(from:GregorianCalendar, to: GregorianCalendar, nodeUrns:List[String], user:String = credentials.head.getUsername):Reservation = {
+	def makeReservation(from:GregorianCalendar, to: GregorianCalendar, nodeUrns:List[Node], user:String = credentials.head.getUsername):Reservation = {
 		val res = new Reservation(from, to, nodeUrns, user)
 		makeReservation(res)
 	}
@@ -89,7 +90,7 @@ class Testbed(val smEndpointURL:String, val snaaEndpointURL:String, val rsEndpoi
 		sessionManagement.free(res.sm_reservationkeys)
 	}
 	
-	def areNodesAlive(nodes:List[String]):NodesAliveJob = {
+	def areNodesAlive(nodes:List[Node]):NodesAliveJob = {
 		val job = new NodesAliveJob(nodes)		
 		val url = controller.url
 		sessionManagement.areNodesAlive(nodes, url)
