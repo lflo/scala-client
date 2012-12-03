@@ -52,16 +52,16 @@ class ExperimentController extends Controller {
 	var endCallbacks = List[() => Unit]()
 	
 	case object ReqJob
-	case class AddJob(id:String, job:Job)
+	case class AddJob[S](id:String, job:Job[S])
 	
 	val sDisp = new Actor {
 		private var rjob = 0
 		private var rsBuf = List[RequestStatus]()
-		private val jobs =  new ListMap[String, Job]
+		private val jobs =  new ListMap[String, Job[_]]
 		
 		private def sendJob(rs:RequestStatus){
 			jobs.get(rs.getRequestId) match {
-				case x:Some[Job] => rs.getStatus.foreach(s => {x.get ! s ; log.debug("Dispatching {}", rs.getRequestId) }) //Send to Job
+				case x:Some[Job[_]] => rs.getStatus.foreach(s => {x.get ! s ; log.debug("Dispatching {}", rs.getRequestId) }) //Send to Job
 				case _ => { 
 					if(rjob > 0){
 						rsBuf ::= rs
@@ -114,7 +114,7 @@ class ExperimentController extends Controller {
 		})
 	}
 
-	def addJob(j:Job, rid: => String) {
+	def addJob[S](j:Job[S], rid: => String) {
 		//Send JRequest
 		sDisp ! ReqJob
 		//Get Job

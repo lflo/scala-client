@@ -88,7 +88,7 @@ object TestClient {
 		} else {
 			log.debug("Setting Handler: {}", setHand)
 			val chd = exp.setChannelHandler(activemotes, new WrappedChannelHandlerConfiguration("contiki") )
-			if(!chd()){
+			if(!chd.success){
 				log.error("Failed setting Handler")
 			}
 		}

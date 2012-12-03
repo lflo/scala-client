@@ -8,7 +8,7 @@ import java.util.Collections.SynchronizedMap
 
 object MoteAliveState extends Enumeration {
 	type MoteAliveState = Value
-	val Alive, Dead, Unknown, Error, NotSet  = Value
+	val Alive, Dead, Unknown, Error  = Value
 
 	def idToEnum(id:Int):MoteAliveState = id match {
 		case 1  => Alive
@@ -17,44 +17,12 @@ object MoteAliveState extends Enumeration {
 		case _  => Error
 	}
 }
+import MoteAliveState._
 
-class NodesAliveJob(nodes:List[String]) extends Job {
-	import MoteAliveState._
-
+class NodesAliveJob(nodes:Seq[String]) extends Job[MoteAliveState](nodes) {		
 	val log = LoggerFactory.getLogger(this.getClass)
 
-	val stat = new mutable.ListMap[String, MoteAliveState]
-	stat ++= nodes.map(_ -> NotSet)
-	
-	def status():Map[String,MoteAliveState] = {
-		apply		
-		//No need for sync, as apply continues once nothing changes any more
-		stat.clone
-	}
+	val successValue = Alive
 
-	def statusUpdate(s:Status):Unit = {		
-		val v = s.getValue()
-		val node = s.getNodeId
-		log.debug("Got state for " + node + ": " + v )
-		stat(node) =  idToEnum(v)
-		checkdone
-	}
-	
-	private def checkdone = {
-		if (stat.forall(_._2 != NotSet)) {
-			//From here on do not need to synchronize any more as no more changes are to be expected.
-			
-			def getNodeState(sb: StringBuilder, st:MoteAliveState):StringBuilder = {
-				val mts = stat.filter(_._2 == st).map(_._1)
-				if (mts.size > 0) sb ++= " " + st + ": " + mts.mkString(", ")
-				sb
-			}
-						
-			_success = stat.forall(_._2 == Alive)
-			
-			val sb = MoteAliveState.values.foldLeft(new StringBuilder)(getNodeState(_ , _))
-			log.debug("Mote States are:" + sb.toString)
-			done()
-		}
-	}
+	def update(node:String, v:Int) = Some(idToEnum(v))
 }

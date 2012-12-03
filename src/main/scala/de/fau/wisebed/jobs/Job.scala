@@ -1,26 +1,52 @@
 package de.fau.wisebed.jobs
 
+import eu.wisebed.api.controller._
 import scala.parallel.Future
-import eu.wisebed.api.controller.Status
-import eu.wisebed.api.controller.RequestStatus
-import scala.actors.Actor
+import scala.collection._
+import scala.actors._
 import org.slf4j.Logger
-import scala.actors.TIMEOUT
 
-abstract class Job extends Actor with Future[Boolean] {
-	var id:String = ""
-	var st_done = false
+class Holder[S] extends Future[S] {
+	private var res: Option[S] = None
+	private var waiting: Boolean = false
+	
+	def isDone:Boolean = res != None
+
+	def set(r: S): Unit = synchronized {
+		res = Some(r)
+		if(waiting) notify()
+	}
+
+	def apply():S = synchronized {
+		waiting = true
+		if(!isDone) wait()
+		res.get
+	}
+}
+
+abstract class Job[S](nodes: Seq[String]) extends Actor with Future[Map[String, S]] {
 	val log:Logger
-	
-	protected var _success = false
-	def success = _success
 
-	def statusUpdate(su:Status):Unit
-	
-	def act(){
-		log.debug("Job Actor started")
+	private[jobs] var states = Map[String, Holder[S]](nodes.map(_ -> new Holder[S]) : _*)
 
-		loopWhile(!st_done) {
+	private[jobs] def update(node: String, v:Int):Option[S]
+
+	val successValue: S
+
+	def isDone:Boolean = states.values.forall(_.isDone)
+
+	def statusUpdate(s:Status) {
+		log.debug("Got state for " + s.getNodeId + ": " + s.getValue)
+		update(s.getNodeId, s.getValue) match {
+			case Some(stat) => states(s.getNodeId).set(stat)
+			case None => // no status update
+		}
+	}
+
+	def act() {
+		log.debug("Job actor started")
+
+		loopWhile(!isDone) {
 			react {
 				case s:Status =>
 					statusUpdate(s)
@@ -29,18 +55,14 @@ abstract class Job extends Actor with Future[Boolean] {
 			}
 		}
 
-		log.debug("Job Actor stopped")
+		log.debug("Job actor stopped")
 	}
-	
-	def isDone:Boolean = st_done
 
-	def apply:Boolean  = synchronized {
-		while (!st_done) wait()
-		_success
+	def apply():Map[String, S] = {
+		states.mapValues(_.apply())
 	}
-	
-	protected def done() = synchronized {
-		st_done  = true
-		notify()
-	}
+
+	def status = apply
+
+	def success:Boolean = apply().values.forall(_ == successValue)
 }
