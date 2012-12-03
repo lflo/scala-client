@@ -3,40 +3,23 @@ package de.fau.wisebed.jobs
 import de.fau.wisebed._
 import eu.wisebed.api.controller._
 import scala.parallel.Future
+import scala.concurrent._
 import scala.collection._
 import scala.actors._
 import org.slf4j.Logger
-
-class Holder[S] extends Future[S] {
-	private var res: Option[S] = None
-	private var waiting: Boolean = false
-	
-	def isDone:Boolean = res != None
-
-	def set(r: S): Unit = synchronized {
-		res = Some(r)
-		if(waiting) notify()
-	}
-
-	def apply():S = synchronized {
-		waiting = true
-		if(!isDone) wait()
-		res.get
-	}
-}
 
 abstract class Job[S](nodes: Seq[String]) extends Actor with Future[Map[String, S]] {
 	val log:Logger
 
 	var expc:Option[OutputChannel[Any]] = None
 
-	private[jobs] var states = Map[String, Holder[S]](nodes.map(_ -> new Holder[S]) : _*)
+	private[jobs] var states = Map[String, SyncVar[S]](nodes.map(_ -> new SyncVar[S]) : _*)
 
 	private[jobs] def update(node: String, v:Int):Option[S]
 
 	val successValue: S
 
-	def isDone:Boolean = states.values.forall(_.isDone)
+	def isDone:Boolean = states.values.forall(_.isSet)
 
 	def statusUpdate(s:Status) {
 		log.debug("Got state for " + s.getNodeId + ": " + s.getValue)
@@ -65,7 +48,7 @@ abstract class Job[S](nodes: Seq[String]) extends Actor with Future[Map[String, 
 		log.debug("Job actor stopped")
 	}
 
-	def apply():Map[String, S] = states.mapValues(_.apply())
+	def apply():Map[String, S] = states.mapValues(_.get)
 	def status = apply
 
 	def success:Boolean = apply().values.forall(_ == successValue)
