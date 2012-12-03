@@ -27,7 +27,7 @@ import scala.concurrent.Lock
 import scala.actors.Actor
 
 
-case class RemJob(job:Job)
+case class RemJob[S](job:Job[S])
 
 
 @WebService(

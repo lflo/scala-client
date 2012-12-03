@@ -102,14 +102,18 @@ object TestClient {
 		
 		log.debug("Resetting")
 		val resj = exp.resetNodes(activemotes)
-		resj()
+		if(!resj.success){
+			log.error("Failed to reset nodes")
+		}
 		
 		log.debug("Waiting for bootup")
 		Thread.sleep(10 * 1000)
 		
 		log.debug("Sending \\n")
 		val snd = exp.send(activemotes, "help\n")
-		snd()
+		if(!snd.success){
+			log.error("Failed to send information to nodes")
+		}
 		log.debug("Waiting for answer")
 		Thread.sleep(20 * 1000)
 		

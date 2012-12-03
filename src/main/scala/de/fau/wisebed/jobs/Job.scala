@@ -6,6 +6,8 @@ import eu.wisebed.api.controller.RequestStatus
 import scala.actors.Actor
 import org.slf4j.Logger
 import scala.actors.TIMEOUT
+import scala.actors.OutputChannel
+import de.fau.wisebed.RemJob
 
 class Holder[S] extends Future[S] {
 	private var res: Option[S] = None
@@ -46,19 +48,15 @@ abstract class Job[S](nodes: Seq[String]) extends Actor with Future[Map[String, 
 
 	def act(){
 		log.debug("Job actor started")
-
 		loopWhile(!isDone) {
 			react{				
 				case s:Status =>
-					if(!expc.isDefined) expc = new Some(sender)
-					statusUpdate(s)						
+					statusUpdate(s)			
+					if(isDone) sender ! RemJob(this)
 				case x =>
 					log.error("Got unknown class: {}", x.getClass)
 			}
 		}
-		if(expc.isDefined) expc.get ! RemJob(this)
-		else log.error("Unable to remove job: {} as no message was reveived yet.", this)
-		log.debug("Job actor stopped")
 	}
 	
 	def apply():Map[String, S] = {
