@@ -114,4 +114,8 @@ class Experiment (res:List[Reservation], implicit val tb:Testbed) {
 	def addMessageInput(mi:messages.MessageInput) {
 		controller.addMessageInput(mi)
 	}
+	
+	def remMessageInput(mi:messages.MessageInput) {
+		controller.remMessageInput(mi)
+	}
 }
