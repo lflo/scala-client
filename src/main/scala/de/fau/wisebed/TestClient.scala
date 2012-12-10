@@ -14,6 +14,7 @@ import wrappers.WrappedChannelHandlerConfiguration._
 import wrappers.WrappedMessage._
 import messages.MsgLiner
 import messages.MessageLogger
+import de.fau.wisebed.messages.MessageWaiter
 
 object TestClient {
 	val log = LoggerFactory.getLogger(this.getClass)
@@ -85,11 +86,13 @@ object TestClient {
 		
 		if(handls.find(_.name == setHand) == None){
 			log.error("Can not set handler: {}", setHand)
+			sys.exit(1)
 		} else {
 			log.debug("Setting Handler: {}", setHand)
 			val chd = exp.setChannelHandler(activemotes, new WrappedChannelHandlerConfiguration("contiki") )
 			if(!chd.success){
 				log.error("Failed setting Handler")
+				sys.exit(1)
 			}
 		}
 		
@@ -97,22 +100,33 @@ object TestClient {
 		if(args.length > 0){
 			log.debug("Flashing")
 			val flashj = exp.flash(args(0), activemotes)
-			flashj()
+			if(!flashj.success){
+				log.error("Failed to flash nodes")
+				sys.exit(1)
+			}
 		}
+		
+		val bw = new MessageWaiter(activemotes,  "Contiki>")
+		exp.addMessageInput(bw)
 		
 		log.debug("Resetting")
 		val resj = exp.resetNodes(activemotes)
 		if(!resj.success){
 			log.error("Failed to reset nodes")
+			sys.exit(1)
 		}
 		
 		log.debug("Waiting for bootup")
-		Thread.sleep(10 * 1000)
+		if(! bw.waitTimeout(10*1000)){
+			log.error("Boot failed");
+			sys.exit(1)
+		}
 		
 		log.debug("Sending \\n")
 		val snd = exp.send(activemotes, "help\n")
 		if(!snd.success){
 			log.error("Failed to send information to nodes")
+			sys.exit(1)
 		}
 		log.debug("Waiting for answer")
 		Thread.sleep(20 * 1000)

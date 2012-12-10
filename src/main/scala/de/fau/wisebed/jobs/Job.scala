@@ -8,6 +8,7 @@ import org.slf4j.Logger
 import scala.actors.TIMEOUT
 import scala.actors.OutputChannel
 import de.fau.wisebed.RemJob
+import de.fau.wisebed.StopAct
 
 class Holder[S] extends Future[S] {
 	private var res: Option[S] = None
@@ -47,12 +48,15 @@ abstract class Job[S](nodes: Seq[String]) extends Actor with Future[Map[String, 
 	}
 
 	def act(){
-		log.debug("Job actor started")
-		loopWhile(!isDone) {
+		log.debug("Job actor started: {}", this.toString)
+		loop {
 			react{				
 				case s:Status =>
 					statusUpdate(s)			
 					if(isDone) sender ! RemJob(this)
+				case StopAct =>
+					log.debug("Job actor stopped: {}", this.toString)
+					exit
 				case x =>
 					log.error("Got unknown class: {}", x.getClass)
 			}

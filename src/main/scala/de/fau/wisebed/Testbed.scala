@@ -84,6 +84,7 @@ class Testbed(val smEndpointURL:String, val snaaEndpointURL:String, val rsEndpoi
 		makeReservation(res)
 	}
 	
+	
 	def freeReservation(res:Reservation) {
 		import Reservation._
 		sessionManagement.free(res.sm_reservationkeys)

@@ -19,15 +19,65 @@ import scala.collection.mutable.SynchronizedBuffer
 import scala.collection.mutable.ListBuffer
 import scala.collection.mutable.ArrayBuffer
 import de.fau.wisebed.jobs.Job
-import com.google.common.collect.Synchronized
 import scala.collection.mutable.SynchronizedMap
 import scala.collection.mutable.ListMap
 import scala.concurrent.SyncVar
 import scala.concurrent.Lock
 import scala.actors.Actor
+import de.fau.wisebed.messages.MessageInput
+import scala.ref.WeakReference
+import scala.collection.mutable.SynchronizedSet
+import scala.collection.mutable.HashSet
 
 
+case object StopAct
+
+protected case object ReqJob
+protected case class AddJob[S](id:String, job:Job[S])	
 case class RemJob[S](job:Job[S])
+
+protected case class AddMes(mi:messages.MessageInput)
+case class RemMes(mi:messages.MessageInput)
+
+private class MessageInputHolder(mi:MessageInput){
+	val wr:WeakReference[MessageInput] = if(mi.isWeak)
+			new WeakReference(mi)
+		 else 
+			null
+			
+	val r:MessageInput = if(mi.isWeak) null else mi
+	def get():Option[MessageInput] = if(r != null) Some(r) else wr.get
+	
+	
+	def weak = r == null
+	
+	
+	override def equals(o:Any) = o match {
+		case x:MessageInputHolder => 
+			
+			if(!weak &&  !x.weak) this.r == x.r //Both non-wark
+			else if(weak && x.weak) {
+				val t = wr.get
+				val o = x.wr.get		
+				// If both are none or both are not none and equal
+				(t == None && o == None) || (t != None && o != None && t == o)								
+			} else 
+				false		
+		case _ => false
+	}
+	
+	override def hashCode: Int = {
+		if(weak){ 
+			val t = wr.get
+			if(t == None) 0  else t.hashCode 
+		} else {
+			r.hashCode
+		} 
+		
+	}
+	
+}
+
 
 
 @WebService(
@@ -37,6 +87,9 @@ case class RemJob[S](job:Job[S])
 		endpointInterface = "eu.wisebed.api.controller.Controller"
 )
 class ExperimentController extends Controller {
+	
+	
+	
   	val log = LoggerFactory.getLogger(this.getClass)
 
   	val url = "http://" + InetAddress.getLocalHost.getCanonicalHostName + ":" + ExperimentController.port + "/controller/" + ExperimentController.id
@@ -51,12 +104,11 @@ class ExperimentController extends Controller {
 
 	log.debug("Successfully started ExperimentController at " + bindAllInterfacesUrl)
 	
-	val messageHandlers = new ArrayBuffer[messages.MessageInput] with SynchronizedBuffer[messages.MessageInput] 
+	private val messageHandlers = new HashSet[MessageInputHolder] with SynchronizedSet[MessageInputHolder]
 	var notificationCallbacks = List[String => Unit]()
 	var endCallbacks = List[() => Unit]()
 	
-	case object ReqJob
-	case class AddJob[S](id:String, job:Job[S])
+	
 	
 	val sDisp = new Actor{
   		private var rjob = 0
@@ -82,6 +134,7 @@ class ExperimentController extends Controller {
   			/** @todo terminate? */
   			loopWhile(true){
   				react {
+  				//*********** Jobs
   					case s:RequestStatus => sendJob(s)
   					case ReqJob => rjob+=1
   					case AddJob(s,j) =>
@@ -101,9 +154,34 @@ class ExperimentController extends Controller {
   							case Some(kv) =>
   								log.debug("Removing job {}.", kv._1)
   								jobs.remove(kv._1)
+  								kv._2 ! StopAct
   							case None => log.error("RemJob: Job {} not found.", j)
   						}
+  				//********* Messages
+  					case AddMes(mi) => messageHandlers += new MessageInputHolder(mi); mi.start
+  					case RemMes(mi) => 	
+  						val mih = new MessageInputHolder(mi)
+  						if(!messageHandlers.contains(mih)){
+  							log.error("Failed to remove MessageInput: {}", mi)
+  						} else {
+  							messageHandlers -=  mih
+  							mi ! StopAct
+  						}
+  					case m:Message =>	
+  						for(mih <- messageHandlers){
+  							val mi = mih.get
+  							if(mi == None){
+  								log.debug("Removing holder: {}", mih.toString)
+  								messageHandlers -= mih
+  							} else {
+  								mi.get ! m
+  							}
+  						} 
+  					
+  				//********* Catch potentioal Problems
   					case x => log.error("Got unknow class: {}", x.getClass.toString)
+  				
+  					
   				}
   			}
   		}
@@ -113,22 +191,13 @@ class ExperimentController extends Controller {
 	
 	@Override
 	def receive(@WebParam(name = "msg", targetNamespace = "") msg:java.util.List[Message]) {
-		for(cb <- messageHandlers; m <- msg) cb ! m
+  		//Send to dispetcher
+		for(m <- msg) sDisp ! m
 	}
 
-	def addMessageInput(mi:messages.MessageInput) {
-			messageHandlers +=  mi
-			mi.start
-	}
+	def addMessageInput(mi:messages.MessageInput){ sDisp ! AddMes(mi) }
 
-	def remMessageInput(mi:messages.MessageInput){
-		if(!messageHandlers.contains(mi)){
-			log.error("Failed to remove MessageInput: {}", mi)
-		} else {
-			messageHandlers -=  mi
-		}
-		
-	}
+	def remMessageInput(mi:messages.MessageInput){ sDisp ! RemMes(mi) }
 
 	@Override
 	def receiveStatus(@WebParam(name = "status", targetNamespace = "") status:java.util.List[RequestStatus]) {

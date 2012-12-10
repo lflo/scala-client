@@ -27,7 +27,7 @@ trait MsgLiner extends MessageInput {
 			if(x != split.last || str.last == '\n'){
 				super.handleMsg(snd)
 			} else {
-				mbuf += wmsg.node -> wmsg
+				mbuf += wmsg.node -> snd
 			}
 		})
 	}
