@@ -11,8 +11,6 @@ import org.slf4j.Logger
 abstract class Job[S](nodes: Seq[Node]) extends Actor with Future[Map[Node, S]] {
 	val log:Logger
 
-	var expc:Option[OutputChannel[Any]] = None
-
 	private[jobs] var states = Map[Node, SyncVar[S]](nodes.map(_ -> new SyncVar[S]) : _*)
 
 	private[jobs] def update(node: Node, v:Int):Option[S]
@@ -28,24 +26,22 @@ abstract class Job[S](nodes: Seq[Node]) extends Actor with Future[Map[Node, S]] 
 			case Some(stat) => states(s.getNodeId).set(stat)
 			case None => // no status update
 		}
-
-		if(expc.isDefined && isDone) expc.get ! RemJob(this)
 	}
 
-	def act() {
-		log.debug("Job actor started")
-
-		loopWhile(!isDone) {
-			react {
+	def act(){
+		log.debug("Job actor started: {}", this.toString)
+		loop {
+			react{				
 				case s:Status =>
-					if(!expc.isDefined) expc = new Some(sender)
-					statusUpdate(s)
+					statusUpdate(s)			
+					if(isDone) sender ! RemJob(this)
+				case StopAct =>
+					log.debug("Job actor stopped: {}", this.toString)
+					exit
 				case x =>
 					log.error("Got unknown class: {}", x.getClass)
 			}
 		}
-
-		log.debug("Job actor stopped")
 	}
 
 	def apply():Map[Node, S] = states.mapValues(_.get)
