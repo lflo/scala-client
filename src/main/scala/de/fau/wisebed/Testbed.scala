@@ -88,6 +88,7 @@ class Testbed(val smEndpointURL:String, val snaaEndpointURL:String, val rsEndpoi
 	def freeReservation(res:Reservation) {
 		import Reservation._
 		sessionManagement.free(res.sm_reservationkeys)
+		reservationSystem.deleteReservation(secretAuthenticationKeys.toSeq, res.secretReservationKeys)
 	}
 	
 	def areNodesAlive(nodes:List[Node]):NodesAliveJob = {
