@@ -15,17 +15,34 @@ import wrappers.WrappedMessage._
 import messages.MsgLiner
 import messages.MessageLogger
 import de.fau.wisebed.messages.MessageWaiter
+import scala.xml.XML
+import java.io.File
 
 object TestClient {
 	val log = LoggerFactory.getLogger(this.getClass)
 
-	val smEndpointURL = "http://i4dr.informatik.uni-erlangen.de:10011/sessions"
-	val snaaEndpointURL = "http://i4dr.informatik.uni-erlangen.de:20011/snaa"
-	val rsEndpointURL = "http://i4dr.informatik.uni-erlangen.de:30011/rs"
+	
 		
 	def main(args: Array[String]) {
 		Logging.setLoggingDefaults(Level.DEBUG) // new PatternLayout("%-11d{HH:mm:ss,SSS} %-5p - %m%n"))
 
+		val conffile = new File("config.xml")
+		if(!conffile.exists){
+			log.error("Could not find \"config.xml\"");
+			sys.exit(1)
+		}
+		
+		
+		val conf = XML.loadFile(conffile)
+		val smEndpointURL = (conf \ "smEndpointURL").text.trim
+		val snaaEndpointURL = (conf \ "snaaEndpointURL").text.trim
+		val rsEndpointURL = (conf \ "rsEndpointURL").text.trim
+		
+		val prefix = (conf \ "prefix").text.trim
+		val login = (conf \ "login").text.trim
+		val pass = (conf \ "pass").text.trim
+		
+		
 		//Get Motes
 		log.debug("Starting Testbed")
 		val tb = new Testbed(smEndpointURL, snaaEndpointURL, rsEndpointURL)
@@ -41,7 +58,7 @@ object TestClient {
 		*/
 		
 		log.debug("Logging in")
-		tb.addCredencials("urn:fau:", "morty", "WSN")
+		tb.addCredencials("prfix", "login", "pass")
 		
 		
 		log.debug("Requesting reservations")
@@ -97,14 +114,14 @@ object TestClient {
 		}
 		
 		
-		if(args.length > 0){
-			log.debug("Flashing")
-			val flashj = exp.flash(args(0), activemotes)
-			if(!flashj.success){
-				log.error("Failed to flash nodes")
-				sys.exit(1)
-			}
+		
+		log.debug("Flashing")
+		val flashj = exp.flash("sky-shell.ihex", activemotes)
+		if(!flashj.success){
+			log.error("Failed to flash nodes")
+			sys.exit(1)
 		}
+		
 		
 		val bw = new MessageWaiter(activemotes,  "Contiki>")
 		exp.addMessageInput(bw)
@@ -136,6 +153,6 @@ object TestClient {
 		
 		
 		log.debug("DONE")
-		//sys.exit(0)
+		sys.exit(0)
 	}
 }
