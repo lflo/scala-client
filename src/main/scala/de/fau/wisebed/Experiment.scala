@@ -88,6 +88,8 @@ class Experiment (res:List[Reservation], implicit val tb:Testbed) {
 		job
 	}
 	
+	def send(node:String,data:String):NodeOkFailJob = send(List(node), data)
+	
 	def send(nodes:List[String], data:String):NodeOkFailJob = {
 		if(active == false) return null
 		val job = new NodeOkFailJob("send" , nodes)
@@ -98,6 +100,8 @@ class Experiment (res:List[Reservation], implicit val tb:Testbed) {
 		controller.addJob(job, wsnService.send(nodes, msg))
 		job
 	}
+	
+	
 	
 	def supportedChannelHandlers:List[WrappedChannelHandlerDescription] = {
 		import wrappers.WrappedChannelHandlerDescription._
