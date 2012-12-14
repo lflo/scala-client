@@ -24,5 +24,5 @@ class NodesAliveJob(nodes:Seq[String]) extends Job[MoteAliveState](nodes) {
 
 	val successValue = Alive
 
-	def update(node:String, v:Int) = Some(idToEnum(v))
+	def update(node:String, v:Int, msg:String) = Some(idToEnum(v))
 }

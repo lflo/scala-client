@@ -12,7 +12,8 @@ object MoteFlashState extends Enumeration {
 		case 100  => OK
 		case -2  => NotFound
 		case -1 => Error
-		case _  => InProgress
+		case n if 0 until 100 contains n  => InProgress
+		case n  => Error 
 	}
 }
 import MoteFlashState._
@@ -22,18 +23,18 @@ class FlashJob(nodes:Seq[String]) extends Job[MoteFlashState](nodes) {
 
 	val successValue = OK
 
-	def update(node:String, v:Int) = {
-		if(v == -1) {
-			log.warn("Failed to Flash mote: ", node)
-			Some(Error)
-		} else if(v == -2) {
-			log.warn("Mote " + node + " not found")
-			Some(NotFound)
-		} else if(v == 100) {
-			Some(OK)
-		} else {
-			log.info("Flashing mote " + node + " " + v + "%")
-			None
+	def update(node:String, v:Int, msg:String) = {
+		v match {				
+			case -2  =>	
+				log.warn("Mote " + node + " not found")
+				Some(NotFound)
+			case 100 =>
+				Some(OK)
+			case n if n >= 0 && n  < 100 =>
+				log.info("Flashing mote " + node + " " + v + "%")
+				None
+			case n => log.warn("Failed to Flash node {}: {}", node, msg )
+				Some(Error)
 		}
 	}
 }

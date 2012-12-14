@@ -22,5 +22,5 @@ class NodeOkFailJob(name:String, nodes:Seq[String]) extends Job[OKFailState](nod
 
 	val successValue = OK
 
-	def update(node:String, v:Int) = Some(idToEnum(v))
+	def update(node:String, v:Int, msg:String) = Some(idToEnum(v))
 }

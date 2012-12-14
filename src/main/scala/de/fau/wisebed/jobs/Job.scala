@@ -33,7 +33,7 @@ abstract class Job[S](nodes: Seq[String]) extends Actor with Future[Map[String, 
 	
 	private[jobs] var states = Map[String, Holder[S]](nodes.map(_ -> new Holder[S]) : _*)
 
-	private[jobs] def update(node: String, v:Int):Option[S]
+	private[jobs] def update(node: String, v:Int, msg:String):Option[S]
 	
 	val successValue: S
 
@@ -41,7 +41,7 @@ abstract class Job[S](nodes: Seq[String]) extends Actor with Future[Map[String, 
 
 	def statusUpdate(s:Status) {
 		log.debug("Got state for " + s.getNodeId + ": " + s.getValue)
-		update(s.getNodeId, s.getValue) match {
+		update(s.getNodeId, s.getValue, s.getMsg) match {
 			case Some(stat) => states(s.getNodeId).set(stat)
 			case None => // no status update
 		}
