@@ -117,7 +117,7 @@ class ExperimentController extends Controller {
   		
   		private def sendJob(rs:RequestStatus){
   			jobs.get(rs.getRequestId) match {
-				case x:Some[Job[_]] => rs.getStatus.foreach(s => {x.get ! s ; log.debug("Dispatching {}", rs.getRequestId) }) //Send to Job
+				case x:Some[Job[_]] => rs.getStatus.foreach(s => {x.get ! s ; log.trace("Dispatching {}", rs.getRequestId) }) //Send to Job
 				case _ => { 
 					if(rjob > 0){
 						rsBuf ::= rs
@@ -203,7 +203,7 @@ class ExperimentController extends Controller {
 	def receiveStatus(@WebParam(name = "status", targetNamespace = "") status:java.util.List[RequestStatus]) {
 		//Send to dispetcher	
 		status.foreach( rs => {
-			log.debug("Got Message for {} - sending to Dispatcher", rs.getRequestId)
+			log.trace("Got Message for {} - sending to Dispatcher", rs.getRequestId)
 			sDisp ! rs	
 		})
 	}
