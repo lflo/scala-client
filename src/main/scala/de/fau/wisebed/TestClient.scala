@@ -58,7 +58,7 @@ object TestClient {
 		*/
 		
 		log.debug("Logging in")
-		tb.addCredencials("prfix", "login", "pass")
+		tb.addCredencials(prefix, login, pass)
 		
 		
 		log.debug("Requesting reservations")

@@ -41,9 +41,9 @@ class Testbed(val smEndpointURL:String, val snaaEndpointURL:String, val rsEndpoi
 	
 	def addCredencials(prefix:String, user:String, password:String) {
 		val credentials = new AuthenticationTriple()
-		credentials.setUrnPrefix("urn:fau:")
-		credentials.setUsername("morty")
-		credentials.setPassword("WSN")
+		credentials.setUrnPrefix(prefix)
+		credentials.setUsername(user)
+		credentials.setPassword(password)
 		addCredencials(credentials)
 	}
 	
