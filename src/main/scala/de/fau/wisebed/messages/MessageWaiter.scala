@@ -19,7 +19,7 @@ import java.util.Date
  * @param needle The string to wait for. This may be multiline 
  *
  */
-class MessageWaiter(nodes:List[String], needle:String) extends MessageInput with Future[Boolean]{
+class MessageWaiter(nodes:Iterable[String], needle:String) extends MessageInput with Future[Boolean]{
 	
 	val log = LoggerFactory.getLogger(this.getClass) 
 	private var stop = false

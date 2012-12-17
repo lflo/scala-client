@@ -65,7 +65,7 @@ class Experiment (res:List[Reservation], implicit val tb:Testbed) {
 	
 	//----------------------- End constructor ---------------------------------------------
 	
-	def flash(file:String, nodes:List[String]):FlashJob = {
+	def flash(file:String, nodes:Seq[String]):FlashJob = {
 		if(active == false) return null
 		val prog = RichProgram(file)
 		val map = List.fill(nodes.size){new java.lang.Integer(0)}
@@ -74,14 +74,14 @@ class Experiment (res:List[Reservation], implicit val tb:Testbed) {
 		job	
 	}
 	
-	def areNodesAlive(nodes:List[String]):NodesAliveJob = {
+	def areNodesAlive(nodes:Seq[String]):NodesAliveJob = {
 		if(active == false) return null
 		val job = new NodesAliveJob(nodes)
 		controller.addJob(job, wsnService.areNodesAlive(nodes))
 		job
 	}
 	
-	def resetNodes(nodes:List[String]):NodeOkFailJob = {
+	def resetNodes(nodes:Seq[String]):NodeOkFailJob = {
 		if(active == false) return null
 		val job = new NodeOkFailJob("reset", nodes)
 		controller.addJob(job, wsnService.resetNodes(nodes))
@@ -90,7 +90,7 @@ class Experiment (res:List[Reservation], implicit val tb:Testbed) {
 	
 	def send(node:String,data:String):NodeOkFailJob = send(List(node), data)
 	
-	def send(nodes:List[String], data:String):NodeOkFailJob = {
+	def send(nodes:Seq[String], data:String):NodeOkFailJob = {
 		if(active == false) return null
 		val job = new NodeOkFailJob("send" , nodes)
 		val msg = new common.Message
@@ -103,12 +103,12 @@ class Experiment (res:List[Reservation], implicit val tb:Testbed) {
 	
 	
 	
-	def supportedChannelHandlers:List[WrappedChannelHandlerDescription] = {
+	def supportedChannelHandlers:Seq[WrappedChannelHandlerDescription] = {
 		import wrappers.WrappedChannelHandlerDescription._
-		wsnService.getSupportedChannelHandlers.map(chd2wchd(_)).toList
+		wsnService.getSupportedChannelHandlers.map(chd2wchd(_))
 	}
 	
-	def setChannelHandler(nodes:List[String], cnf:wsn.ChannelHandlerConfiguration):NodeOkFailJob = {
+	def setChannelHandler(nodes:Seq[String], cnf:wsn.ChannelHandlerConfiguration):NodeOkFailJob = {
 		val cn = List.fill(nodes.size){cnf}
 		val job =  new NodeOkFailJob("setChannelHandler", nodes)
 		controller.addJob(job,wsnService.setChannelPipeline(nodes, cn))
