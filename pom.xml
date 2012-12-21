@@ -109,26 +109,18 @@
                 </executions>
 				<configuration>
 					  <launchers>
+
 						<launcher>
-						  <id>experiment</id>
-						  <mainClass>de.fau.wisebed.TestClient</mainClass>
-						  <args>
-						  </args>
-						  <jvmArgs>
-							<jvmArg>-Xmx128m</jvmArg>
-							<jvmArg>-Djava.library.path=...</jvmArg>
-						  </jvmArgs>
+						  <id>test</id>
+						  <mainClass>de.fau.wisebed.test.TestClient</mainClass>
 						</launcher>
 						<launcher>
 						  <id>flash</id>
-						  <mainClass>de.fau.wisebed.TestClient</mainClass>
-						  <args>
-							<arg>sky-shell.ihex</arg>
-						  </args>
-						  <jvmArgs>
-							<jvmArg>-Xmx128m</jvmArg>
-							<jvmArg>-Djava.library.path=...</jvmArg>
-						  </jvmArgs>
+						  <mainClass>de.fau.wisebed.test.Flash</mainClass>
+						</launcher>
+						<launcher>
+						  <id>reset</id>
+						  <mainClass>de.fau.wisebed.test.Reset</mainClass>
 						</launcher>
 					  </launchers>
 					</configuration>
