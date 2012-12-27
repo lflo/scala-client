@@ -10,7 +10,7 @@ import javax.xml.datatype.XMLGregorianCalendar
 import java.text.SimpleDateFormat
 import org.slf4j.LoggerFactory
 
-class Reservation(_from:GregorianCalendar, _to:GregorianCalendar,_nodeURNs:List[String], user:String) {
+class Reservation(_from:GregorianCalendar, _to:GregorianCalendar,_nodeURNs:Seq[String], user:String) {
 	val log = LoggerFactory.getLogger(this.getClass)
 
 	val lfrom:GregorianCalendar = _from.clone.asInstanceOf[GregorianCalendar]

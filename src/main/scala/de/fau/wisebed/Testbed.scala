@@ -30,7 +30,7 @@ class Testbed(val smEndpointURL:String, val snaaEndpointURL:String, val rsEndpoi
 	lazy val controller = new ExperimentController
 	
 	// Public funcions
-	def getnodes(moteType:List[String] = List("telosb")):List[String] = {
+	def getnodes(moteType:Seq[String] = List("telosb")):List[String] = {
 		WiseMLHelper.getNodeUrns(wiseML, moteType).toList
 	}
 	
@@ -79,7 +79,7 @@ class Testbed(val smEndpointURL:String, val snaaEndpointURL:String, val rsEndpoi
 		res
 	}
 	
-	def makeReservation(from:GregorianCalendar, to: GregorianCalendar, nodeUrns:List[String], user:String = credentials.head.getUsername):Reservation = {
+	def makeReservation(from:GregorianCalendar, to: GregorianCalendar, nodeUrns:Seq[String], user:String = credentials.head.getUsername):Reservation = {
 		val res = new Reservation(from, to, nodeUrns, user)
 		makeReservation(res)
 	}
@@ -90,7 +90,7 @@ class Testbed(val smEndpointURL:String, val snaaEndpointURL:String, val rsEndpoi
 		sessionManagement.free(res.sm_reservationkeys)
 	}
 	
-	def areNodesAlive(nodes:List[String]):NodesAliveJob = {
+	def areNodesAlive(nodes:Seq[String]):NodesAliveJob = {
 		val job = new NodesAliveJob(nodes)		
 		val url = controller.url
 		sessionManagement.areNodesAlive(nodes, url)
