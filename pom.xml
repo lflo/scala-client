@@ -122,6 +122,10 @@
 						  <id>reset</id>
 						  <mainClass>de.fau.wisebed.test.Reset</mainClass>
 						</launcher>
+						<launcher>
+						  <id>list</id>
+						  <mainClass>de.fau.wisebed.test.ListNodes</mainClass>
+						</launcher>
 					  </launchers>
 					</configuration>
             </plugin>
