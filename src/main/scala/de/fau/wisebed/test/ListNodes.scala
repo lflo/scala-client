@@ -14,7 +14,6 @@ object ListNodes {
 		
 	def main(args: Array[String]) {
 		val log = LoggerFactory.getLogger(getClass)
-		Logging.setLoggingDefaults(Level.DEBUG) // new PatternLayout("%-11d{HH:mm:ss,SSS} %-5p - %m%n"))
 	
 		TH.init(2)
 		val inact = TH.motes -- TH.activemotes

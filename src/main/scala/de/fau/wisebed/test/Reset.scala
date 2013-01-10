@@ -14,7 +14,6 @@ object Reset {
 	
 		
 	def main(args: Array[String]) {
-		Logging.setLoggingDefaults(Level.DEBUG) // new PatternLayout("%-11d{HH:mm:ss,SSS} %-5p - %m%n"))
 		
 		
 		TH.init(30)
