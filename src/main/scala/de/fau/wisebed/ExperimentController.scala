@@ -28,6 +28,7 @@ import de.fau.wisebed.messages.MessageInput
 import scala.ref.WeakReference
 import scala.collection.mutable.SynchronizedSet
 import scala.collection.mutable.HashSet
+import scala.actors.DaemonActor
 
 
 case object StopAct
@@ -109,8 +110,10 @@ class ExperimentController extends Controller {
 	var endCallbacks = List[() => Unit]()
 	
 	
-	
-	val sDisp = new Actor{
+	/*
+	 * This should be a DeamonActor, as the must be someone Non-Deamon to receive or send messages.
+	 */
+	val sDisp = new DaemonActor{
   		private var rjob = 0
   		private var rsBuf = List[RequestStatus]()
 		private val jobs =  new ListMap[String, Job[_]]
@@ -195,8 +198,15 @@ class ExperimentController extends Controller {
 		for(m <- msg) sDisp ! m
 	}
 
+  	/**
+  	 * Add a new message input that will receive all Messages
+  	 * One must nor register an input twice.
+  	 */
 	def addMessageInput(mi:messages.MessageInput){ sDisp ! AddMes(mi) }
 
+	/**
+	 * Remove the message input. This will also end it's actor and call the shutdown functions.
+	 */
 	def remMessageInput(mi:messages.MessageInput){ sDisp ! RemMes(mi) }
 
 	@Override
@@ -208,12 +218,17 @@ class ExperimentController extends Controller {
 		})
 	}
 
-	def addJob[S](j:Job[S], rid: => String) {
+	/**
+	 * Add a new Job to the controller.
+	 * @param job The Job
+	 * @param rid Function to request the Job-ID
+	 */
+	def addJob[S](job:Job[S], rid: => String) {
 		//Send JRequest
 		sDisp ! ReqJob
 		//Get Job
 		val id:String = rid		
-		sDisp ! AddJob(id, j)
+		sDisp ! AddJob(id, job)
 	}
 
 	@Override
