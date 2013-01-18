@@ -16,6 +16,7 @@ import scala.ref.WeakReference
 abstract trait MessageInput extends Actor {
 	val log:Logger
 	private var state  = 0
+	val cbs = scala.collection.mutable.ArrayBuffer[() => Unit]()
 	
 	protected def handleMsg(msg:common.Message):Unit
 	protected def stopIntput { if(state == 0) state = 1 }
@@ -23,6 +24,27 @@ abstract trait MessageInput extends Actor {
 	def isWeak = false
 	
 	private val ctr = MessageInput.getctr
+	
+	/**
+	 * Wait for the MessageInput to handle its last message 
+	 */
+	def waitDone(){
+		while(state != 3) wait
+	} 
+	
+	/**
+	 * Run ager the last message -> e.g. close file handle.
+	 */
+	def runOnExit(cb: () => Unit){
+		cbs += cb
+	}
+	
+	
+	override def exit(): Nothing  = {		
+		cbs.foreach(_())
+		super.exit
+	}
+	
 	
 	def act() {
 		log.debug("Message actor {} started: {}", ctr.toString, this.toString)
@@ -38,6 +60,8 @@ abstract trait MessageInput extends Actor {
 					} 
 				case StopAct =>
 					log.debug("Message actor {} stopped: {}", ctr.toString, this.toString)
+					state = 3
+					synchronized{notify}
 					exit
 				case x =>
 					log.error("Got unknown class: {}", x.getClass)
