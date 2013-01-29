@@ -37,14 +37,17 @@ class Experiment (res:List[Reservation], implicit val tb:Testbed) {
 	var active = true
 
 	val controller = new ExperimentController
+	val endpoint = controller.start()
 
-	if(log.isTraceEnabled){
+	if(log.isTraceEnabled) {
 		val msghndl = new MessageLogger(mi => {
 			import WrappedMessage._
 			log.debug("Got message from " + mi.node + ": " + mi.dataString)
 		}) with MsgLiner
 		controller.addMessageInput(msghndl)
+		controller.onEnd { controller.remMessageInput(msghndl) }
 	}
+
 	controller.onEnd {
 		active = false
 		stopdel()
@@ -52,8 +55,7 @@ class Experiment (res:List[Reservation], implicit val tb:Testbed) {
 	}
 
 	private def stopdel() {
-		/** @todo stop endpoint */ 
-		// controller.endpoint.stop()
+		endpoint.stop()
 	} 
 	
 	log.debug("Local controller published on url: {}", controller.url)

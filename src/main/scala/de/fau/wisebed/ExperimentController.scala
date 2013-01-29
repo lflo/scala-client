@@ -88,27 +88,28 @@ private class MessageInputHolder(mi:MessageInput){
 		endpointInterface = "eu.wisebed.api.controller.Controller"
 )
 class ExperimentController extends Controller {
-	
-	
-	
   	val log = LoggerFactory.getLogger(this.getClass)
 
   	val url = "http://" + InetAddress.getLocalHost.getCanonicalHostName + ":" + ExperimentController.port + "/controller/" + ExperimentController.id
 	val bindAllInterfacesUrl = UrlUtils.convertHostToZeros(url)
 
-	log.debug("Starting ExperimentController...")
-	log.debug("Endpoint URL: {}", url)
-	log.debug("Binding  URL: {}", bindAllInterfacesUrl)
-
-	val endpoint = Endpoint.publish(bindAllInterfacesUrl, this)
-	endpoint.setExecutor(Executors.newCachedThreadPool())
-
-	log.debug("Successfully started ExperimentController at " + bindAllInterfacesUrl)
-	
 	private val messageHandlers = new HashSet[MessageInputHolder] with SynchronizedSet[MessageInputHolder]
 	var notificationCallbacks = List[String => Unit]()
 	var endCallbacks = List[() => Unit]()
-	
+
+	def start() = {
+		log.debug("Starting ExperimentController...")
+		log.debug("Endpoint URL: {}", url)
+		log.debug("Binding  URL: {}", bindAllInterfacesUrl)
+
+		//val endpoint = Endpoint.publish(bindAllInterfacesUrl, this)
+		val endpoint = Endpoint.publish(url, this)
+		endpoint.setExecutor(Executors.newCachedThreadPool())
+
+		log.debug("Successfully started ExperimentController at " + bindAllInterfacesUrl)
+
+		endpoint
+	}
 	
 	/*
 	 * This should be a DeamonActor, as the must be someone Non-Deamon to receive or send messages.
