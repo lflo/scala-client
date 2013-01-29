@@ -109,7 +109,7 @@
 					<args>
 						<arg>-unchecked</arg>
 						<arg>-deprecation</arg>
-						<arg>-feature</arg>
+						<!--<arg>-feature</arg>-->
 					</args>
 					  <launchers>
 
