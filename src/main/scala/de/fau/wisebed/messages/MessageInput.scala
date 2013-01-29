@@ -3,17 +3,11 @@ package de.fau.wisebed.messages
 import eu.wisebed.api._
 import de.fau.wisebed.RemMes
 import de.fau.wisebed.StopAct
-import scala.actors.Actor
+import scala.actors.DaemonActor
 import org.slf4j.Logger
 import scala.ref.WeakReference
 
-
-
-
-
-
-
-abstract trait MessageInput extends Actor {
+abstract trait MessageInput extends DaemonActor {
 	val log:Logger
 	private var state  = 0
 	val cbs = scala.collection.mutable.ArrayBuffer[() => Unit]()
